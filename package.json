@@ -1,0 +1,21 @@
+{
+  "name": "astra-js",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "lerna run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AstraProtocol/astra-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AstraProtocol/astra-js/issues"
+  },
+  "homepage": "https://github.com/AstraProtocol/astra-js#readme",
+  "devDependencies": {
+    "lerna": "^4.0.0"
+  }
+}
