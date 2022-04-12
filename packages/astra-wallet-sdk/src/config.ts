@@ -1,11 +1,11 @@
 export const chainInfo = {
-  chainId: "astra-devnet-001",
+  chainId: "astra_11110-1",
   denom: "astra",
-  rpcEndpoint: "https://rpc.astra.bar",
+  rpcEndpoint: "https://rpc.astranaut.network",
   currency: {
     coinDenom: "ASTRA",
-    coinMinimalDenom: "astra",
-    coinDecimals: 6,
+    coinMinimalDenom: "aastra",
+    coinDecimals: 18,
   },
   defaultFee: 5000,
   defaultGas: 200000,
