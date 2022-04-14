@@ -44,9 +44,9 @@ const getAccounts = async () => {
 
 const getAccountBalance = async (address: string) => {
   const response = await fetch(
-    `https://api.astra.bar/bank/balances/${address}`
+    `${chainInfo.apiEndpoint}/cosmos/bank/v1beta1/balances/${address}`
   );
-  const balance = response.json().then(({ result }) => result[0].amount);
+  const balance = response.json().then(result => result.balances[0].amount);
   return balance;
 };
 
