@@ -10,10 +10,13 @@
     "typescript": "^4.6.2"
   },
   "dependencies": {
-    "@cosmjs/proto-signing": "^0.28.0",
-    "@cosmjs/stargate": "^0.28.0",
-    "@keplr-wallet/types": "^0.9.12",
+    "@cosmjs/amino": "^0.27.1",
+    "@cosmjs/proto-signing": "^0.27.1",
+    "@keplr-wallet/cosmos": "^0.9.16",
+    "@keplr-wallet/crypto": "^0.9.10",
+    "@keplr-wallet/unit": "^0.9.12",
     "@rollup/plugin-typescript": "^8.3.1",
+    "long": "^5.2.0",
     "rollup": "^2.70.1"
   }
 }

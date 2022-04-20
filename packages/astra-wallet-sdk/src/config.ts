@@ -5,7 +5,7 @@ export const chainInfo = {
   apiEndpoint: "https://api.astranaut.network",
   currency: {
     coinDenom: "ASTRA",
-    coinMinimalDenom: "aastra",
+    denom: "aastra",
     coinDecimals: 18,
   },
   defaultFee: 5000,

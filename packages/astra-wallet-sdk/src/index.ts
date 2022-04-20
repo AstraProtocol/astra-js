@@ -1,9 +1,6 @@
-import {
-  assertIsDeliverTxSuccess,
-  SigningStargateClient,
-} from "@cosmjs/stargate";
 import { AccountChangeHandler, Astra, SendTxParams } from "./types/astra";
 import { chainInfo } from "./config";
+import { broadcastTx, fetchTx, signTx } from "./helpers";
 
 const NO_EXTENSION_ERROR = "Please install Astra Wallet extension";
 const getAstraInstance = async (): Promise<Astra | undefined> => {
@@ -17,10 +14,7 @@ const getAstraInstance = async (): Promise<Astra | undefined> => {
 
   return new Promise((resolve) => {
     const documentStateChange = (event: Event) => {
-      if (
-        event.target &&
-        (event.target as Document).readyState === "complete"
-      ) {
+      if (event.target && (event.target as Document).readyState === "complete") {
         resolve(window.astra);
         document.removeEventListener("readystatechange", documentStateChange);
       }
@@ -43,10 +37,8 @@ const getAccounts = async () => {
 };
 
 const getAccountBalance = async (address: string) => {
-  const response = await fetch(
-    `${chainInfo.apiEndpoint}/cosmos/bank/v1beta1/balances/${address}`
-  );
-  const balance = response.json().then(result => result.balances[0].amount);
+  const response = await fetch(`${chainInfo.apiEndpoint}/cosmos/bank/v1beta1/balances/${address}`);
+  const balance = response.json().then((result) => result.balances[0].amount);
   return balance;
 };
 
@@ -62,10 +54,7 @@ const subscribeAccountsChangeEvent = (handler: AccountChangeHandler) => {
 
 const unsubscribeAccountsChangeEvent = () => {
   if (accountsChangeEventHandler) {
-    window.removeEventListener(
-      "keplr_keystorechange",
-      accountsChangeEventHandler
-    );
+    window.removeEventListener("keplr_keystorechange", accountsChangeEventHandler);
   }
 };
 
@@ -83,39 +72,17 @@ const sendTx = async ({
   }
 
   await astraInstance.enable(chainInfo.chainId);
-  const finalAmount = {
-    denom: chainInfo.denom,
-    amount: String(Math.floor(amount * 10 ** chainInfo.currency.coinDecimals)),
-  };
-  const finalFee = {
-    amount: [
-      {
-        denom: chainInfo.denom,
-        amount: String(fee),
-      },
-    ],
-    gas: String(gas),
-  };
   const offlineSigner = astraInstance.getOfflineSigner(chainInfo.chainId);
-  const client = await SigningStargateClient.connectWithSigner(
-    chainInfo.rpcEndpoint,
-    offlineSigner
-  );
-  const result = await client.sendTokens(
-    senderAddress,
-    recipientAddress,
-    [finalAmount],
-    finalFee,
-    memo
-  );
-  assertIsDeliverTxSuccess(result);
-  return result;
+  const signedTx = await signTx(offlineSigner)(senderAddress, recipientAddress, String(amount), memo);
+  const txHash = await broadcastTx(signedTx);
+
+  const txHashStr = Buffer.from(txHash).toString("hex").toUpperCase();
+  const txLog = await fetchTx(txHashStr);
+  if (!txLog) {
+    throw new Error("Can't fetch transaction");
+  }
+
+  return { transactionHash: txHash };
 };
 
-export {
-  getAccounts,
-  getAccountBalance,
-  sendTx,
-  subscribeAccountsChangeEvent,
-  unsubscribeAccountsChangeEvent,
-};
+export { getAccounts, getAccountBalance, sendTx, subscribeAccountsChangeEvent, unsubscribeAccountsChangeEvent };
