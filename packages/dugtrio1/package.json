@@ -1,0 +1,86 @@
+{
+  "name": "@tikivn/dugtrio",
+  "version": "2.3.30",
+  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.tiki.services"
+  },
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "start": "echo start",
+    "build": "scripts/task build",
+    "build:with-clean": "scripts/task bootstrap && scripts/task build",
+    "deloy:test": "scripts/task yalc",
+    "deloy": "scripts/task bootstrap && scripts/task build && scripts/task publish",
+    "analyze": "webpack --profile --json > stats.json",
+    "test:nowatch": "jest",
+    "test": "jest --watch",
+    "lint": "eslint --fix --quiet",
+    "format": "prettier --loglevel=silent --write",
+    "lint-staged": "lint-staged",
+    "doc": "jsdoc",
+    "present-doc": "http-server ./out"
+  },
+  "peerDependencies": {
+    "ramda": "0.x"
+  },
+  "dependencies": {
+    "@astra/tx": "^2.3.19",
+    "@astra/wallet": "^2.3.19",
+    "@cosmjs/amino": "^0.28.10",
+    "@cosmjs/crypto": "^0.28.10",
+    "@cosmjs/encoding": "^0.28.10",
+    "@cosmjs/math": "^0.28.10",
+    "@cosmjs/proto-signing": "^0.28.10",
+    "@cosmjs/stargate": "^0.28.10",
+    "@ethereumjs/common": "^2.6.5",
+    "@ethereumjs/tx": "^3.5.2",
+    "@walletconnect/sign-client": "2.0.0-beta.100",
+    "@walletconnect/utils": "2.0.0-beta.100",
+    "assert": "^2.0.0",
+    "better-sqlite3": "^7.5.3",
+    "buffer": "^6.0.3",
+    "cosmjs-types": "^0.5.0",
+    "crypto-browserify": "^3.12.0",
+    "elliptic": "^6.5.4",
+    "ethereumjs-util": "^7.1.5",
+    "safe-json-utils": "^1.1.1",
+    "stream-browserify": "^3.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.18.6",
+    "@babel/core": "^7.17.9",
+    "@babel/eslint-parser": "^7.16.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-stage-3": "^7.8.3",
+    "@babel/register": "^7.16.0",
+    "@types/ramda": "^0.28.11",
+    "axios": "^0.27.2",
+    "babel-jest": "^27.5.1",
+    "babel-loader": "^8.2.4",
+    "eslint": "^8.1.0",
+    "eslint-plugin-jest": "^25.2.3",
+    "husky": "^7.0.0",
+    "jest": "^27.3.1",
+    "jsdoc": "^3.6.7",
+    "lerna": "^5.1.8",
+    "lint-staged": "^11.2.6",
+    "prettier": "^2.4.1",
+    "ramda": "^0.27.1",
+    "regenerator-runtime": "^0.13.9",
+    "terser-webpack-plugin": "^5.2.5",
+    "webpack": "^5.62.0",
+    "webpack-cli": "^4.9.1"
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm run lint",
+      "npm run format"
+    ]
+  }
+}
