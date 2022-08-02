@@ -1,0 +1,33 @@
+{
+  "name": "@astra/tx",
+  "version": "2.3.19",
+  "description": "> TODO: description",
+  "author": "Nguyễn Duy Anh <anh.nguyen10@tiki.vn>",
+  "homepage": "https://github.com/tikivn/dugtrio#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {},
+  "dependencies": {
+    "@cosmjs/amino": "^0.28.10",
+    "@cosmjs/crypto": "^0.28.10",
+    "@cosmjs/encoding": "^0.28.10",
+    "@cosmjs/math": "^0.28.10",
+    "@cosmjs/proto-signing": "^0.28.10",
+    "@cosmjs/stargate": "^0.28.10",
+    "@ethereumjs/common": "^2.6.5",
+    "@ethereumjs/tx": "^3.5.2",
+    "buffer": "^6.0.3",
+    "cosmjs-types": "^0.5.0",
+    "elliptic": "^6.5.4"
+  },
+  "peerDependencies": {
+    "ramda": "^0.28.0"
+  }
+}

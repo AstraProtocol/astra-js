@@ -1,0 +1,30 @@
+{
+  "name": "@anh.ndns/my-connector",
+  "version": "1.0.9",
+  "description": "> TODO: description",
+  "author": "Nguyễn Duy Anh <anh.nguyen10@tiki.vn>",
+  "homepage": "https://github.com/tikivn/dugtrio#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tikivn/dugtrio.git"
+  },
+  "scripts": {},
+  "bugs": {
+    "url": "https://github.com/tikivn/dugtrio/issues"
+  },
+  "dependencies": {
+    "@web3-react/abstract-connector": "^6.0.7"
+  }
+}

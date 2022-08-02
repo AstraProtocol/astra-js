@@ -1,0 +1,28 @@
+{
+  "name": "@astra/my-socket",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Nguyễn Duy Anh <anh.nguyen10@tiki.vn>",
+  "homepage": "https://github.com/tikivn/dugtrio#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tikivn/dugtrio.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/tikivn/dugtrio/issues"
+  }
+}

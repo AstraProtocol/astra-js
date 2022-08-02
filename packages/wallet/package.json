@@ -1,0 +1,14 @@
+{
+  "name": "@astra/wallet",
+  "version": "2.3.19",
+  "main": "lib/wallet.js",
+  "peerDependencies": {
+    "ramda": "^0.28.0"
+  },
+  "dependencies": {
+    "@astra/tx": "^2.3.19",
+    "@cosmjs/amino": "^0.28.10",
+    "@cosmjs/crypto": "^0.28.10",
+    "@cosmjs/encoding": "^0.28.10"
+  }
+}
