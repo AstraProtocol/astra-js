@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+
+# Print a command before running it.
+exe() {
+  echo "$@"
+  $@
+}
+
+semver() {
+  # cat package.json | npx jq 'del(.dependencies)' | npx jq "del(.devDependencies)" > 'publish/package.json'
+  cat package.json | npx jq '{name: .name, version: .version, main:
+  .main, files: .files, peerDependencies: .peerDependencies,
+  publishConfig: .publishConfig }' > 'publish/package.json'
+}
+
+# Ends the script if a specific directory is not present.
+# Used to ensure we're running a package-specific script for e.g. compilation.
+reqdir() {
+  if [ ! -d "$1" ]; then
+    echo "$self: error: $2: $3"
+    exit 1
+  fi
+}
+reqpkg() {
+  reqdir './src' $1 "Run this command from inside a package"
+}
+
+# Get the project's root directory, possibly through a symlink.
+link="$(dirname `readlink $0` 2> /dev/null)"
+path=`dirname $0 2> /dev/null`
+root=`cd "$path"/"$link"/.. && pwd`  # root dir (dir of the monorepo)
+project=`cat "$root/package.json" | grep -i "\"name\"" | awk -F[\"] '{print $4}'`
+self=`basename "$0"`  # name of this script
+package=$PWD  # reference to the current package, if in its directory
+
+# Retrieve the package name, version and homepage of the root package.
+project=`cat "$root/package.json" | grep -i "\"name\"" | awk -F[\"] '{print $4}'`
+version=`cat "$root/package.json" | grep -i "\"version\"" | awk -F[\"] '{print $4}'`
+homepage=`cat "$root/package.json" | grep -i "\"homepage\"" | awk -F[\"] '{print $4}'`
+
+usage="usage: $self [-h] [-v] {compile,watch,clean,lint-all,test-all,lint,test}"
+babel="$root/node_modules/.bin/babel"
+babelargs="--config-file $root/.babelrc.js --verbose --relative $root/packages/**/src/ -d ../lib"
+webpack="$root/node_modules/.bin/webpack"
+webpackArgs="--config $root/webpack.config.js"
+webpackDevArgs="--config $root/webpack.config.dev.js"
+
+libraryClear="$root/packages/**/lib $root/packages/**/package-lock.json $root/node_modules $root/package-lock.json"
+distClear="$root/publish $root/dist"
+
+case $1 in
+  bootstrap)
+    exe "rm -rf $libraryClear"
+    exe "rm -rf $distClear"
+    exe "mkdir $distClear"
+    exe "lerna clean --yes"
+    exe lerna bootstrap
+    ;;
+  build)
+    export NODE_ENV=production
+    exe "$babel $babelargs"
+    exe "$webpack $webpackArgs"
+    ;;
+  publish)
+    exe "npm version patch"
+    semver
+    cd publish
+    npm publish
+    ;;
+  yalc)
+    exe "$babel $babelargs"
+    exe "$webpack $webpackDevArgs"
+    yalc publish
+    ;;
+  bootstrap)
+    exe "lerna clean --yes"
+    exe lerna bootstrap
+    ;;
+  compile)
+    export NODE_ENV=production
+    exe "$babel $babelargs"
+    ;;
+  watch)
+    exe "$babel --watch $babelargs"
+    ;;
+  clean)
+    exe "rm -rfv $root/packages/**/lib $root/packages/**/package-lock.json"
+    ;;
+  lint-all)
+    exe "eslint $root"
+    ;;
+  test-all)
+    exe "jest $root"
+    ;;
+  lint)
+    reqpkg $1
+    cd $root
+    exe "eslint $package"
+    ;;
+  test)
+    reqpkg $1
+    cd $root
+    exe "jest $package"
+    ;;
+  -v|--version)
+    echo "$project ($version)"
+    ;;
+  *)
+    if [[ $1 == "-h" || $1 == '--help' ]]; then
+      cat << EOF
+$usage
+
+Tooling utility function for babel-7-monorepo-example. Runs scripts to compile,
+lint and test code. Tasks are divided into global tasks, which operate on
+all packages, and package tasks, which need to be invoked from inside
+a package directory.
+
+Global tasks:
+  compile               Transforms package code to ES5 for publication.
+  watch                 Watches for changes, then compiles.
+  clean                 Deletes all compiled files.
+  lint-all              Checks style guidelines for all packages.
+  test-all              Runs automated tests for all packages.
+
+Package tasks:
+  lint                  Checks code for style guidelines.
+  test                  Runs automated tests.
+
+Optional arguments:
+  -h, --help            Show this help message and exit.
+  -v, --version         Show program's version number and exit.
+
+For more information, see <$homepage>.
+EOF
+      exit 0
+    fi
+    if [ -z "$1" ]; then
+      cat << EOF
+$usage
+$self: error: $self: too few arguments
+EOF
+      exit 1
+    fi
+    if [ ! -z "$1" ]; then
+      cat << EOF
+$usage
+$self: error: Invalid command: $1 (choose from [compile, watch, clean, lint-all, test-all, lint, test])
+EOF
+      exit 1
+    fi
+    ;;
+esac
