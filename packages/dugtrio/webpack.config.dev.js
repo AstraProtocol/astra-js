@@ -43,8 +43,8 @@ module.exports = {
   resolve: {
     fallback: {
       path: false,
-      assert: require.resolve('assert'),
-      buffer: require.resolve('buffer'),
+      assert: require.resolve('assert/'),
+      buffer: require.resolve('buffer/'),
       crypto: require.resolve('crypto-browserify'),
       stream: require.resolve('stream-browserify'),
     },
@@ -56,11 +56,12 @@ module.exports = {
     rules: [
       {
         test: /\.m?js$/,
-        exclude: /(node_modules)/,
+        exclude: /node_modules\/(?!(@walletconnect)\/).*/,
         use: {
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env'],
+            plugins: ['@babel/plugin-proposal-optional-chaining'],
           },
         },
       },
