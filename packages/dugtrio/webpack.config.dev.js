@@ -45,6 +45,7 @@ module.exports = {
       path: false,
       assert: require.resolve('assert/'),
       buffer: require.resolve('buffer/'),
+      events: require.resolve('events/'),
       crypto: require.resolve('crypto-browserify'),
       stream: require.resolve('stream-browserify'),
     },
