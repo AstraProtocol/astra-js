@@ -108,10 +108,8 @@ publish
 .rgignore
 
 # Package lock
-package-lock.json
 
 .theia
 .npmrc
 dist
 yarn.lock
-package-lock.json
