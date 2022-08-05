@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Print a command before running it.
+exe() {
+  echo "$@"
+  $@
+}
+
+semver() {
+  # cat package.json | npx jq 'del(.dependencies)' | npx jq "del(.devDependencies)" > 'publish/package.json'
+  cat package.json | npx jq '{name: .name, version: .version, main:
+  .main, files: .files, peerDependencies: .peerDependencies,
+  publishConfig: .publishConfig }' > 'publish/package.json'
+}
+
+# Ends the script if a specific directory is not present.
+# Used to ensure we're running a package-specific script for e.g. compilation.
+reqdir() {
+  if [ ! -d "$1" ]; then
+    echo "$self: error: $2: $3"
+    exit 1
+  fi
+}
+reqpkg() {
+  reqdir './src' $1 "Run this command from inside a package"
+}
+
+# Get the project's root directory, possibly through a symlink.
+link="$(dirname `readlink $0` 2> /dev/null)"
+path=`dirname $0 2> /dev/null`
+root=`cd "$path"/"$link"/.. && pwd`  # root dir (dir of the monorepo)
+project=`cat "$root/package.json" | grep -i "\"name\"" | awk -F[\"] '{print $4}'`
+self=`basename "$0"`  # name of this script
+package=$PWD  # reference to the current package, if in its directory
+
+# Retrieve the package name, version and homepage of the root package.
+project=`cat "$root/package.json" | grep -i "\"name\"" | awk -F[\"] '{print $4}'`
+version=`cat "$root/package.json" | grep -i "\"version\"" | awk -F[\"] '{print $4}'`
+homepage=`cat "$root/package.json" | grep -i "\"homepage\"" | awk -F[\"] '{print $4}'`
+
+usage="usage: $self [-h] [-v] {compile,watch,clean,lint-all,test-all,lint,test}"
+babel="$root/node_modules/.bin/babel"
+babelargs="--config-file $root/.babelrc.js --verbose --relative $root/packages/**/src/ -d ../lib"
+webpack="$root/node_modules/.bin/webpack"
+webpackArgs="--config $root/webpack.config.js"
+webpackDevArgs="--config $root/webpack.config.dev.js"
+
+libraryClear="$root/packages/**/lib"
+distClear="$root/publish $root/dist"
+dependencies=""
+
+export NODE_ENV=production
+
+exe "rm -rf $libraryClear"
+exe "rm -rf $distClear"
+exe "$babel $babelargs"

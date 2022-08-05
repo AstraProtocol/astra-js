@@ -7,12 +7,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install -g lerna
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Lerna setup
+        run: npm install -g lerna@4 && npm install
+      - name: Project install
+        run: lerna bootstrap --not-ci
+      - name: Dependencies build
+        run: scripts/task
+      - name: Build
+        run: lerna --scope=@tikivn/dugtrio run build
+      - name: Check
+        run: cd packages/dugtrio/ && ls -a
+      # - run: npm publish
+        # env:
+          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
