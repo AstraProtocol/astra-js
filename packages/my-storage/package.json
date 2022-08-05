@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "> TODO: description",
   "author": "Nguyễn Duy Anh <anh.nguyen10@tiki.vn>",
-  "homepage": "https://github.com/tikivn/dugtrio#readme",
+  "homepage": "https://github.com/AstraProtocol/astra-js#readme",
   "license": "ISC",
   "main": "lib/index.js",
   "directories": {
@@ -18,13 +18,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tikivn/dugtrio.git"
+    "url": "git+https://github.com/AstraProtocol/astra-js.git"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
-    "url": "https://github.com/tikivn/dugtrio/issues"
+    "url": "https://github.com/AstraProtocol/astra-js/issues"
   },
   "dependencies": {
     "safe-json-utils": "^1.1.1"

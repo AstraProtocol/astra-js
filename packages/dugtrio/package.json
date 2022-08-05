@@ -1,11 +1,11 @@
 {
-  "name": "@tikivn/dugtrio",
-  "version": "2.3.30",
+  "name": "@astra-sdk/dugtrio",
+  "version": "1.0.0",
   "module": "dist/index.js",
   "main": "dist/index.js",
   "license": "MIT",
   "publishConfig": {
-    "registry": "https://npm.pkg.tiki.services"
+    "registry": "https://registry.npmjs.org"
   },
   "files": [
     "dist/*"
