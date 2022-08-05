@@ -1,8 +1,8 @@
 name: Publish Package to npmjs
 on: [push]
-# on:
-  # release:
-    # types: [created]
+on:
+  release:
+    types: [created]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,13 +17,12 @@ jobs:
       - name: Lerna setup
         run: npm install -g lerna@4 && npm install
       - name: Project install
-        run: lerna bootstrap --not-ci
+        run: lerna bootstrap
       - name: Dependencies build
         run: scripts/task
       - name: Build
         run: lerna --scope=@tikivn/dugtrio run build
-      - name: Check
-        run: cd packages/dugtrio/ && ls -a
-      # - run: npm publish
-        # env:
-          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish
+        run: cd packages/dugtrio/publish && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
