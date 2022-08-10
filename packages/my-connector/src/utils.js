@@ -9,6 +9,6 @@ export const checkContext = async (target, time = 100) => {
   if (context) return context;
   if (!time) return Promise.reject('Not supported platform!');
   await delay(16);
-  return getMy(target, time - 1);
+  return checkContext(target, time - 1);
 }
 
