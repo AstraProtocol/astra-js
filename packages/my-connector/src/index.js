@@ -1,6 +1,6 @@
 import { checkContext } from './utils';
-import { AstraWalletConnector as MyAstraWalletConnector   } from './my';
-import { AstraConnector as AstraWalletConnector  } from './mobile';
+import { AstraWalletConnector as MyAstraWalletConnector } from './my';
+import { AstraConnector  } from './mobile';
 
 
 

@@ -17,12 +17,10 @@ jobs:
       - name: Lerna setup
         run: npm install -g lerna@4 && npm install
       - name: Project install
-        run: lerna bootstrap
-      - name: Dependencies build
+        run: lerna bootstrap --scope=@astra-sdk/connector
+      - name: ES5 build
         run: scripts/task babel
-      - name: Build
-        run: lerna --scope=@astra-sdk/dugtrio run build
       - name: Publish
-        run: cd packages/dugtrio/publish && npm publish
+        run: cd packages/my-connector && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
