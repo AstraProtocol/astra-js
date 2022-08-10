@@ -3,7 +3,7 @@
   "version": "2.3.19",
   "description": "> TODO: description",
   "author": "Nguyễn Duy Anh <anh.nguyen10@tiki.vn>",
-  "homepage": "https://github.com/tikivn/dugtrio#readme",
+  "homepage": "https://github.com/AstraProtocol/astra-js#readme",
   "license": "ISC",
   "main": "lib/index.js",
   "directories": {

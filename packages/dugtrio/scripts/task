@@ -67,6 +67,11 @@ case $1 in
     cd publish
     npm publish
     ;;
+  prepublish)
+    semver
+    cd publish
+    exe "npm version patch"
+    ;;
   yalc)
     exe "$babel $babelargs"
     exe "$webpack $webpackDevArgs"
