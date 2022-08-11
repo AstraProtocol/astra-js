@@ -1,6 +1,5 @@
 import { ConnectorUpdate } from '@web3-react/types'
 import { AbstractConnector } from '@web3-react/abstract-connector'
-import warning from 'tiny-warning'
 import { astra, cosmosChainId,  MiniRpcProvider } from './utils'
 
 export class NoAstraProviderError extends Error {
@@ -55,7 +54,6 @@ export class AstraConnector extends AbstractConnector {
       if (error.code === 4001) {
         throw new UserRejectedRequestError()
       }
-      warning(false, 'eth_requestAccounts was unsuccessful, falling back to enable')
     }
   }
 
