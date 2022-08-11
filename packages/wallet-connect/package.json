@@ -1,6 +1,6 @@
 {
-  "name": "@anh.ndns/wallet-connect",
-  "version": "0.0.0",
+  "name": "@astra-sdk/wallet-connect",
+  "version": "1.0.0",
   "description": "> TODO: description",
   "author": "vu.le <vu.le@tiki.vn>",
   "homepage": "https://github.com/AstraProtocol/astra-js#readme",
@@ -27,6 +27,8 @@
     "url": "https://github.com/AstraProtocol/astra-js/issues"
   },
   "dependencies": {
-    "@walletconnect/legacy-modal": "2.0.0-beta.100"
+    "@walletconnect/qrcode-modal": "^1.8.0",
+    "@walletconnect/sign-client": "2.0.0-rc.1",
+    "@walletconnect/utils": "2.0.0-rc.1"
   }
 }
