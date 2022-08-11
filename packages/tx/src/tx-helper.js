@@ -11,10 +11,11 @@ export const genSignDoc = (amount, currency, recipient, memo, stdFee, signOption
 });
 
 export const actualAmount = (amount, coinDecimals) => {
-  const _amount = Uint64.fromNumber(Number(amount));
-  const _coinDecimals = Uint64.fromNumber(Number(coinDecimals));
-  const tenNumber = Uint64.fromNumber(10);
-  return _amount.data.mul(tenNumber.data.pow(_coinDecimals.data)).toString();
+  // const _amount = Uint64.fromNumber(Number(amount));
+  // const _coinDecimals = Uint64.fromNumber(Number(coinDecimals));
+  // const tenNumber = Uint64.fromNumber(10);
+  // return _amount.data.mul(tenNumber.data.pow(_coinDecimals.data)).toString();
+  return Number(amount) * 10 ** Number(coinDecimals)
 };
 
 export const genMessage = (type) => (address) => (__inputData) => {
