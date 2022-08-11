@@ -21,6 +21,6 @@ jobs:
       - name: ES5 build
         run: scripts/task babel
       - name: Publish
-        run: cd packages/wallet-connector && npm publish
+        run: cd packages/wallet-connect && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
