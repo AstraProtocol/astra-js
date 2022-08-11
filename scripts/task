@@ -41,4 +41,56 @@ homepage=`cat "$root/package.json" | grep -i "\"homepage\"" | awk -F[\"] '{print
 babel="$root/node_modules/.bin/babel"
 babelargs="--config-file $root/.babelrc.js --verbose --relative $root/packages/**/src/ -d ../lib"
 
-exe "$babel $babelargs"
+
+case $1 in
+  babel)
+    exe "$babel $babelargs"
+    ;;
+  prepublish-connector)
+    echo 123
+    ;;
+  *)
+    if [[ $1 == "-h" || $1 == '--help' ]]; then
+      cat << EOF
+$usage
+
+Tooling utility function for babel-7-monorepo-example. Runs scripts to compile,
+lint and test code. Tasks are divided into global tasks, which operate on
+all packages, and package tasks, which need to be invoked from inside
+a package directory.
+
+Global tasks:
+  compile               Transforms package code to ES5 for publication.
+  watch                 Watches for changes, then compiles.
+  clean                 Deletes all compiled files.
+  lint-all              Checks style guidelines for all packages.
+  test-all              Runs automated tests for all packages.
+
+Package tasks:
+  lint                  Checks code for style guidelines.
+  test                  Runs automated tests.
+
+Optional arguments:
+  -h, --help            Show this help message and exit.
+  -v, --version         Show program's version number and exit.
+
+For more information, see <$homepage>.
+EOF
+      exit 0
+    fi
+    if [ -z "$1" ]; then
+      cat << EOF
+$usage
+$self: error: $self: too few arguments
+EOF
+      exit 1
+    fi
+    if [ ! -z "$1" ]; then
+      cat << EOF
+$usage
+$self: error: Invalid command: $1 (choose from [compile, watch, clean, lint-all, test-all, lint, test])
+EOF
+      exit 1
+    fi
+    ;;
+esac
