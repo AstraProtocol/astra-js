@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-import { da } from 'date-fns/locale'
-
->>>>>>> d72dc35e95ba8dd659ec2f7033d4a9ce7978fcd4
 export const astra = (target) => {
   return target.astra
 }
