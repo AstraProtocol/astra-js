@@ -1,4 +1,4 @@
-name: Publish Package to npmjs
+name: Publish Connector package
 on:
   release:
     types: [created]
