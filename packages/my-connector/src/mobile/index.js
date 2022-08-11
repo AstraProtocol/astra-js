@@ -1,4 +1,3 @@
-import { ConnectorUpdate } from '@web3-react/types'
 import { AbstractConnector } from '@web3-react/abstract-connector'
 import warning from 'tiny-warning'
 import { astra, cosmosChainId,  MiniRpcProvider } from './utils'
