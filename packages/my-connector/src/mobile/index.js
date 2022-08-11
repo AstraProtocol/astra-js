@@ -51,7 +51,7 @@ export class AstraConnector extends AbstractConnector {
       this.provider.updateBechAddress(key.bech32Address)
       this.account = `0x${buffer.toString('hex')}`
       this.setupSuccess = true;
-    } catch (e) {
+    } catch (error) {
       if (error.code === 4001) {
         throw new UserRejectedRequestError()
       }
