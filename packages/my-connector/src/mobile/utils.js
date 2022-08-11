@@ -1,5 +1,3 @@
-import { da } from 'date-fns/locale'
-
 export const astra = (target) => {
   return target.astra
 }
