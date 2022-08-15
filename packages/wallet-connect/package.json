@@ -5,7 +5,7 @@
   "author": "vu.le <vu.le@tiki.vn>",
   "homepage": "https://github.com/AstraProtocol/astra-js#readme",
   "license": "ISC",
-  "main": "lib/wallet-connect.js",
+  "main": "lib/index.js",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
