@@ -7,6 +7,7 @@ import {
   addressConverter,
   fetchAllTxs,
   fetchTx,
+  fetchTxs,
   transfer,
   staking,
   signEthTransaction,
@@ -245,6 +246,11 @@ const createProvider = (configs) => {
   const _fetchTx = (txHash, time = 10) => {
     return fetchTx(self.axiosInstance, txHash, time);
   };
+
+  const _fetchTxs = async query => {
+    return fetchTxs(self.axiosInstance, query);
+  };
+
   const _getEthAddress = () => {
     return self.account.ethAddress;
   };
@@ -288,6 +294,7 @@ const createProvider = (configs) => {
     validatePassword,
     fetchAllTxs: _fetchAllTxs,
     fetchTx: _fetchTx,
+    fetchTxs: _fetchTxs,
     initSignClient,
     getSignClient: () => self.signClient,
     signEthTransaction: _signEthTransaction,
