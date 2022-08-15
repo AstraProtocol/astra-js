@@ -1,9 +1,10 @@
 import { makeSignDoc } from '@cosmjs/amino';
 import SignClient from '@walletconnect/sign-client';
 import { getSdkError } from '@walletconnect/utils';
-import { sign, signAmino } from '@astra/tx';
-
+import { sign, signEthTransaction } from '@astra/tx';
+import { mergeLeft } from 'ramda';
 import { KEY as STORAGE_KEY } from './KeyValueStorage';
+
 const _sign = (accountFromSigner, messages, fee, memo, { accountNumber, sequence, chainId }) => {
   const signDoc = makeSignDoc(messages, fee, chainId, memo, accountNumber, sequence);
   return sign(accountFromSigner, signDoc);
@@ -84,24 +85,45 @@ export const init = async (signClientOptions, stream) => {
   const getSessions = async () => {
     return self.client.session.values;
   };
+
   const approveRequest = async (requestEvent, account) => {
     const { params, topic, id } = requestEvent;
     const {
       request: {
-        params: { messages, fee, memo, signerData },
+        method, // sign | signEth
+        chainId, // sign eth
+        params: txData,
       },
     } = params;
 
-    const result = _sign(account, messages, fee, memo, signerData);
+    if(method === 'sign') {
+      const { messages, fee, memo, signerData } = txData;
+      const result = _sign(account, messages, fee, memo, signerData);
+  
+      await self.client.respond({
+        topic,
+        response: {
+          id,
+          jsonrpc: '2.0',
+          result,
+        },
+      });
+    } else if (method === 'signEth') {
+      const result = signEthTransaction(
+        mergeLeft({ chainId, gasLimit: txData.gas }, txData)
+      );
+  
+      await self.client.respond({
+        topic,
+        response: {
+          id,
+          jsonrpc: '2.0',
+          result,
+        },
+      });
+    }
 
-    await self.client.respond({
-      topic,
-      response: {
-        id,
-        jsonrpc: '2.0',
-        result,
-      },
-    });
+
   };
 
   const rejectRequest = async (requestEvent) => {
