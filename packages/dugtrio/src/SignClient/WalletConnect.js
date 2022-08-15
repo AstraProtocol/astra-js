@@ -1,6 +1,6 @@
 import { makeSignDoc } from '@cosmjs/amino';
 import SignClient from '@walletconnect/sign-client';
-import { ERROR } from '@walletconnect/utils';
+import { getSdkError } from '@walletconnect/utils';
 import { sign, signAmino } from '@astra/tx';
 
 import { KEY as STORAGE_KEY } from './KeyValueStorage';
@@ -77,7 +77,7 @@ export const init = async (signClientOptions, stream) => {
     const { id } = proposal;
     return self.client.reject({
       id,
-      reason: ERROR.JSONRPC_REQUEST_METHOD_REJECTED.format(),
+      reason: getSdkError('USER_REJECTED_METHODS'),
     });
   };
 
@@ -111,7 +111,7 @@ export const init = async (signClientOptions, stream) => {
       response: {
         id,
         jsonrpc: '2.0',
-        error: ERROR.JSONRPC_REQUEST_METHOD_REJECTED.format().message,
+        error: getSdkError('USER_REJECTED_METHODS').message
       },
     });
   };
