@@ -74,3 +74,14 @@ export const fetchAllTxs = async (axiosInstance, address) => {
 
   return flatten(txs);
 };
+
+
+export const fetchTxs = async (axiosInstance, query) => {
+  const { data } = await axiosInstance.get('/cosmos/tx/v1beta1/txs', {
+    params: {
+      order_by: 'ORDER_BY_DESC',
+      ...query,
+    },
+  });
+  return data;
+};
