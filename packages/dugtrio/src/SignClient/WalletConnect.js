@@ -109,8 +109,11 @@ export const init = async (signClientOptions, stream) => {
         },
       });
     } else if (method === 'signEth') {
+      const payload = txData[0];
       const result = signEthTransaction(
-        mergeLeft({ chainId, gasLimit: txData.gas }, txData)
+        account,
+        mergeLeft({ chainId, gasLimit: payload.gas }, payload),
+        chainId
       );
   
       await self.client.respond({
