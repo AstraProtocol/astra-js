@@ -1,6 +1,6 @@
 import { AbstractConnector } from '@web3-react/abstract-connector'
 import { createRequest } from './utils'
-export { RELAY_URL, QRCodeModal, SignClient } from '@astra-sdk/wallet-connect';
+import { RELAY_URL, QRCodeModal, SignClient } from '@astra-sdk/wallet-connect';
 
 
 const WC_CHAINID = `astra:astra-`
