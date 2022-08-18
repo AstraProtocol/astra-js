@@ -1,11 +1,3 @@
-# `@anh.ndns/wallet-connect`
+# `@astra-sdk/wallet-connect`
 
-> TODO: description
-
-## Usage
-
-```
-const walletConnect = require('@anh.ndns/wallet-connect');
-
-// TODO: DEMONSTRATE API
-```
+Document and example at [https://wallet.astranaut.io/docs/development/wallet-connect/](https://wallet.astranaut.io/docs/development/wallet-connect/)

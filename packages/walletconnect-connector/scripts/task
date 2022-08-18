@@ -69,8 +69,8 @@ case $1 in
     ;;
   prepublish)
     semver
-    cd publish
-    exe "npm version patch"
+    # cd publish
+    # exe "npm version patch"
     ;;
   yalc)
     exe "$babel $babelargs"

@@ -1,8 +1,7 @@
-const webpack = require('webpack');
-const R = require('ramda');
 const TerserJSPlugin = require('terser-webpack-plugin');
 const path = require('path');
 const developmentMode = false;
+const webpack = require('webpack');
 
 module.exports = {
   devtool: developmentMode && 'source-map',
@@ -10,52 +9,30 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'publish', 'dist'),
-    library: 'wallet-provider',
+    library: 'walletconnect-connector',
     libraryTarget: 'umd',
     filename: 'index.js',
     globalObject: 'this',
   },
-  externals: {
-    ramda: 'ramda',
-  },
-  plugins: [
-    new webpack.NormalModuleReplacementPlugin(
-      /@walletconnect\/keyvaluestorage/,
-      path.resolve('./src/SignClient/KeyValueStorage.js')
-    ),
-    new webpack.NormalModuleReplacementPlugin(
-      /@walletconnect\/jsonrpc-ws-connection/,
-      path.resolve('./src/SignClient/jsonrpc-ws-connection/index.js')
-    ),
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-    }),
-    new webpack.IgnorePlugin({
-      checkResource(resource, context) {
-        return (
-          R.includes('bip39', context) &&
-          R.includes('./wordlists/', resource) &&
-          R.includes('.json', resource) &&
-          !R.includes('english', resource)
-        );
-      },
-    }),
-  ],
-  resolve: {
-    fallback: {
-      path: false,
-      assert: require.resolve('assert/'),
-      buffer: require.resolve('buffer/'),
-      events: require.resolve('events/'),
-      crypto: require.resolve('crypto-browserify'),
-      stream: require.resolve('stream-browserify'),
-    },
-  },
   optimization: {
     minimizer: [developmentMode ? null : new TerserJSPlugin({})].filter(Boolean),
   },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    })
+  ],
   module: {
     rules: [
+      {
+        test: /\.js$/,
+        loader: 'string-replace-loader',
+        options: {
+          search: 'WalletConnect-compatible',
+          replace: 'Astra',
+          flags: 'g'
+        }
+      },
       {
         test: /\.m?js$/,
         exclude: /node_modules\/(?!(@walletconnect)\/).*/,
@@ -69,4 +46,14 @@ module.exports = {
       },
     ],
   },
+  resolve: {
+    fallback: {
+      path: false,
+      assert: require.resolve('assert/'),
+      buffer: require.resolve('buffer/'),
+      events: require.resolve('events/'),
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
+    }
+  }
 };

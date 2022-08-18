@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "echo start",
-    "build": "scripts/task build && scripts/task prepublish",
+    "build": "scripts/task build",
     "build:with-clean": "scripts/task bootstrap && scripts/task build",
     "deloy:test": "scripts/task yalc",
     "deloy": "scripts/task bootstrap && scripts/task build && scripts/task publish",
@@ -29,21 +29,27 @@
     "ramda": "0.x"
   },
   "dependencies": {
-    "@walletconnect/qrcode-modal": "^1.8.0",
-    "@walletconnect/sign-client": "2.0.0-rc.1",
-    "@astra/tx": "^2.3.19"
+    "@web3-react/abstract-connector": "^6.0.7",
+    "@astra-sdk/wallet-connect": "^1.0.1"
   },
   "devDependencies": {
+    "crypto-browserify": "^3.12.0",
+    "@cosmjs/encoding": "^0.28.10",
+    "ethereumjs-util": "^7.1.5",
     "@babel/cli": "^7.18.6",
     "@babel/core": "^7.17.9",
+    "buffer": "^6.0.3",
+    "stream-browserify": "^3.0.0",
     "@babel/eslint-parser": "^7.16.0",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/plugin-proposal-optional-chaining": "^7.18.9",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-stage-3": "^7.8.3",
     "@babel/register": "^7.16.0",
+    "events": "^3.3.0",
     "@types/ramda": "^0.28.11",
     "axios": "^0.27.2",
+    "assert": "^2.0.0",
     "babel-jest": "^27.5.1",
     "babel-loader": "^8.2.4",
     "eslint": "^8.1.0",
@@ -59,7 +65,8 @@
     "regenerator-runtime": "^0.13.9",
     "terser-webpack-plugin": "^5.2.5",
     "webpack": "^5.62.0",
-    "webpack-cli": "^4.9.1"
+    "webpack-cli": "^4.9.1",
+    "string-replace-loader": "^3.0.3"
   },
   "lint-staged": {
     "*.js": [

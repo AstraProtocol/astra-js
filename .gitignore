@@ -5,3 +5,5 @@ dist
 **/dist
 
 .npmrc
+
+packages/**/lib

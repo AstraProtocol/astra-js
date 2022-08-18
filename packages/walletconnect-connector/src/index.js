@@ -1,11 +1,10 @@
 import { AbstractConnector } from '@web3-react/abstract-connector'
-import QRCodeModal from '@walletconnect/qrcode-modal'
-import SignClient from '@walletconnect/sign-client'
-import { convertToHex, createRequest } from './utils'
+import { createRequest } from './utils'
+export { RELAY_URL, QRCodeModal, SignClient } from '@astra-sdk/wallet-connect';
+
 
 const WC_CHAINID = `astra:astra-`
 
-const RELAY_URL = 'wc-relay.astranaut.dev'
 const RELAY = `ws://${RELAY_URL}`
 
 class WalletConnectProvider {
@@ -44,7 +43,6 @@ class WalletConnectProvider {
       chainId: this.walletconnectChainId,
       request: {
         method: 'signEth',
-        chainId: this.chainId,
         params: payload,
       },
     })
@@ -59,7 +57,7 @@ class WalletConnectProvider {
     if (_method === 'eth_sendTransaction') {
       const [txData] = _params
       const nonce = await this.http('eth_getTransactionCount', [txData.from, 'latest'])
-      const signedData = await this.sendWCRequest([{ ...txData, nonce }])
+      const signedData = await this.sendWCRequest({ ...txData, nonce, chainId: this.chainId })
       return this.sendRawTransaction(signedData)
     }
     return this.http(_method, _params)
@@ -101,8 +99,8 @@ export class WalletConnectConnector extends AbstractConnector {
   }
 
   async setup({
-    relayUrl: RELAY,
-    metadata: {},
+    relayUrl = RELAY,
+    metadata = {},
     logger
   }) {
     const client = await SignClient.init({
@@ -147,7 +145,7 @@ export class WalletConnectConnector extends AbstractConnector {
       .map((namespace) => namespace.accounts)
       .flat()
     const addresses = allNamespaceAccounts.map((str) => str.split(':')[2])
-    this.account = convertToHex(addresses?.[0])
+    this.account = addresses?.[0]
     this.provider = new WalletConnectProvider(this.chainId, this.url, this.mappers, this.client, this.walletconnectChainId)
     this.provider.updateSession(session)
   }
