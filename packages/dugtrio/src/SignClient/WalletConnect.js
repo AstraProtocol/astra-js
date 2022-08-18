@@ -111,7 +111,7 @@ export const init = async (signClientOptions, stream) => {
       const {chainId, ...txRest} = txData;
       const result = signEthTransaction(
         account,
-        mergeLeft({ gasLimit: txRest.gas }, txRest),
+        mergeLeft({ gasLimit: txRest.gas, chainId }, txRest),
         chainId
       );
   
