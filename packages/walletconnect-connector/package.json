@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "echo start",
-    "build": "scripts/task build",
+    "build": "scripts/task build && scripts/task prepublish",
     "build:with-clean": "scripts/task bootstrap && scripts/task build",
     "deloy:test": "scripts/task yalc",
     "deloy": "scripts/task bootstrap && scripts/task build && scripts/task publish",
