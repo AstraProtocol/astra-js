@@ -9,10 +9,15 @@ const _sign = (accountFromSigner, messages, fee, memo, { accountNumber, sequence
   const signDoc = makeSignDoc(messages, fee, chainId, memo, accountNumber, sequence);
   return sign(accountFromSigner, signDoc);
 };
+
 export const init = async (signClientOptions, stream) => {
   const self = {
     stream: null,
     client: null,
+    destroyed: false,
+    removeSessionProposalCallback: () => { },
+    removeSessionRequestCallback: () => { },
+    removeSessionDeleteCallback: () => { },
   };
 
   self.client = await SignClient.init({
@@ -29,35 +34,64 @@ export const init = async (signClientOptions, stream) => {
   self.client.on('session_event', (data) => console.log('event', data));
   self.client.on('session_update', (data) => console.log('update', data));
 
+  function destroy() {
+    self.destroyed = true;
+    self.removeSessionProposalCallback()
+    self.removeSessionRequestCallback()
+    self.removeSessionDeleteCallback()
+    my.offSocketMessage();
+    my.offSocketOpen();
+    my.offSocketError();
+    my.closeSocket();
+  }
+
   function _onSessionProposal(data) {
-    self.stream.invoke('sessionProposal', data);
+    if(!self.destroyed) {
+      self.stream.invoke('sessionProposal', data);
+    }
   }
   function _onSessionRequest(data) {
-    self.stream.invoke('sessionRequest', data);
+    if(!self.destroyed) {
+      self.stream.invoke('sessionRequest', data);
+    }
   }
   function _onSessionDelete(data) {
-    self.stream.invoke('sessionDelete', data);
+    if(!self.destroyed) {
+      self.stream.invoke('sessionDelete', data);
+    }
   }
 
   function onSessionProposal(callback) {
-    return self.stream.register('sessionProposal', callback);
+    self.removeSessionProposalCallback = self.stream.register('sessionProposal', callback);
+    return self.removeSessionProposalCallback;
   }
 
   function onSessionRequest(callback) {
-    return self.stream.register('sessionRequest', callback);
+    self.removeSessionRequestCallback = self.stream.register('sessionRequest', callback);
+    return self.removeSessionRequestCallback;
   }
 
   function onSessionDelete(callback) {
-    return self.stream.register('sessionDelete', callback);
+    self.removeSessionDeleteCallback = self.stream.register('sessionDelete', callback);
+    return self.removeSessionDeleteCallback;
   }
 
   function disconnect({ topic, reason }) {
-    return self.client.disconnect({ topic, reason });
+    try {
+      return self.client.disconnect({ topic, reason });
+    } catch(e) {
+      // try to remove 
+      self.client.session.delete(topic, getSdkError("USER_DISCONNECTED"));
+      self.client.core.crypto.deleteSymKey(topic);
+      self.client.expirer.del(topic);
+      console.log('disconnect error', e);
+    }
   }
 
   const pair = async ({ uri }) => {
     await self.client.pair({ uri });
   };
+
   const approveProposal = async (proposal, address) => {
     const approvePayload = {
       id: proposal.id,
@@ -161,5 +195,6 @@ export const init = async (signClientOptions, stream) => {
     onSessionProposal,
     onSessionRequest,
     onSessionDelete,
+    destroy
   };
 };

@@ -1,5 +1,5 @@
-import { map, reject, compose, apply, applyTo, uniq } from 'ramda';
-const R = { compose, map, reject, apply, applyTo, uniq };
+import { map, reject, compose, apply, applyTo, uniq, equals } from 'ramda';
+const R = { compose, map, reject, apply, applyTo, uniq, equals };
 
 export const miniStream = () => {
   const self = {
