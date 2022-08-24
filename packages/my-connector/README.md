@@ -1,11 +1,3 @@
-# `@astra/my-connector`
+# @astra-sdk/connector
 
-> TODO: description
-
-## Usage
-
-```
-const myConnector = require('@astra/my-connector');
-
-// TODO: DEMONSTRATE API
-```
+Document and example at [https://wallet.astranaut.io/docs/development/astra-wallet-connector](https://wallet.astranaut.io/docs/development/astra-wallet-connector)
