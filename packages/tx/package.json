@@ -25,7 +25,8 @@
     "@ethereumjs/tx": "^3.5.2",
     "buffer": "^6.0.3",
     "cosmjs-types": "^0.5.0",
-    "elliptic": "^6.5.4"
+    "elliptic": "^6.5.4",
+    "@keplr-wallet/unit": "^0.9.12"
   },
   "peerDependencies": {
     "ramda": "^0.28.0"
