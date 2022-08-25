@@ -3,6 +3,7 @@ const R = require('ramda');
 const TerserJSPlugin = require('terser-webpack-plugin');
 const path = require('path');
 const developmentMode = false;
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   devtool: developmentMode && 'source-map',
@@ -19,6 +20,10 @@ module.exports = {
     ramda: 'ramda',
   },
   plugins: [
+    new webpack.NormalModuleReplacementPlugin(
+      /\.\/genesisStates\/.*\.json/,
+      path.resolve('./empty.json')
+    ),
     new webpack.NormalModuleReplacementPlugin(
       /@walletconnect\/keyvaluestorage/,
       path.resolve('./src/SignClient/KeyValueStorage.js')
@@ -40,8 +45,14 @@ module.exports = {
         );
       },
     }),
+    // new BundleAnalyzerPlugin()
   ],
   resolve: {
+    modules: [
+      path.resolve(__dirname, 'node_modules'),
+      path.resolve(__dirname, '../../packages/tx/node_modules'),
+      path.resolve(__dirname, '../../packages/wallet/node_modules'),
+    ],
     fallback: {
       path: false,
       assert: require.resolve('assert/'),
