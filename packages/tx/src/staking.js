@@ -203,7 +203,7 @@ const getValidators = async (axiosInstance, { address }) => {
         return {
           name: val?.description?.moniker,
           address: val?.operator_address,
-          shares: delegation?.delegation?.shares || 0,
+          shares: delegation?.balance?.amount || 0,
           reward: reward?.reward?.[0]?.amount || 0,
           token: val.tokens,
           commission_rate: val.commission.commission_rates.rate,
