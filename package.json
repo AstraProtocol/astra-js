@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "build": "lerna run build",
-    "dev": "scripts/dev-sdk",
+    "bootstrap": "make bootstrap",
+    "dev": "node scripts/dev-sdk-js.mjs",
     "compile": "--config-file .babelrc.js --verbose --relative packages/tx/src/ -d ../lib"
   },
   "repository": {
