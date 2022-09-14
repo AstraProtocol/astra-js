@@ -1,5 +1,15 @@
 import { miniStream } from '../utils';
-import { propOr, always, isEmpty, head } from 'ramda';
+import {
+  propOr,
+  always,
+  isEmpty,
+  head,
+  path,
+  pathOr,
+  defaultTo,
+  objOf,
+  mapObjIndexed,
+} from 'ramda';
 import { EthSecp256k1HdWallet } from '@astra/wallet';
 import { Bip39, Random, Slip10RawIndex, EnglishMnemonic } from '@cosmjs/crypto';
 import { bip44HDPathToPath, bip44HDPath as _bip44HDPath } from '../config';
@@ -9,13 +19,15 @@ import {
   fetchTx,
   fetchTxs,
   transfer,
+  simulateTransfer,
   staking,
   signEthTransaction,
   detectAddressType,
+  calculateFee,
 } from '@astra/tx';
 import * as SignClient from '../SignClient';
 
-const R = { propOr, always, isEmpty, head };
+const R = { propOr, always, isEmpty, head, path, pathOr, defaultTo, objOf, mapObjIndexed };
 
 const hdPath = [
   Slip10RawIndex.hardened(44),
@@ -39,7 +51,7 @@ export const generateSeed = (length = 12) => {
 };
 
 const createProvider = (configs) => {
-  const { chainInfo, RNG, bip44HDPath, kdf, storage, axios } = configs;
+  const { chainInfo, RNG, bip44HDPath, kdf, storage, axios, storageGenerator } = configs;
 
   const self = {
     stream: miniStream(),
@@ -56,6 +68,8 @@ const createProvider = (configs) => {
     axiosInstance: axios.create({ baseURL: chainInfo.lcdUrl }),
     balances: {},
     signClient: null,
+    gasConfig: {},
+    cacheStore: storageGenerator('cache'),
   };
 
   const initSignClient = async (options) => {
@@ -146,9 +160,89 @@ const createProvider = (configs) => {
   const onBalances = (callback) => {
     return self.stream.register('balances', callback);
   };
-  const _tranfer = (recipient, amount, memo) => {
-    return transfer(self.axiosInstance, self.chainInfo, self.account, recipient, amount, memo);
+  const onGasSimulate = (callback) => {
+    return self.stream.register('gas', callback);
   };
+  const onFeeSimulate = (callback) => {
+    return self.stream.register('fee', callback);
+  };
+  const _tranfer = async (recipient, amount, memo) => {
+    const gasUsed = await simulateTransfer(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      recipient,
+      amount,
+      memo
+    );
+    return transfer(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      recipient,
+      amount,
+      _feeSimulator(gasUsed, 'send'),
+      memo
+    );
+  };
+  const _simulateTransfer = async (recipient, amount, memo) => {
+    const gasUsed = await simulateTransfer(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      recipient,
+      amount,
+      memo
+    );
+    storeSimulation('send', gasUsed);
+  };
+
+  const storeSimulation = async (type, value) => {
+    if (value) {
+      const storedGasUsed = await self.cacheStore.getItem();
+      const newGasConfig = R.defaultTo({}, storedGasUsed, R.objOf(type, value));
+      await self.cacheStore.setItem(newGasConfig);
+      self.gasConfig = newGasConfig;
+      self.stream.invoke('gas', self.gasConfig);
+      self.stream.invoke('fee', feeSimulatorFromGasConfig(self.gasConfig));
+    }
+  };
+
+  const _feeSimulator = (gasUsed, type) => {
+    const { gasPrice, gasAdjustment } = chainInfo;
+    if (gasUsed) {
+      return calculateFee({ gasPrice, gasLimit: Math.floor(gasAdjustment[type] * gasUsed) });
+    }
+  };
+
+  const feeSimulator = (type) => {
+    const gasUsed = self.gasConfig && self.gasConfig[type];
+    const { gasPrice, gasAdjustment } = chainInfo;
+    const _gasAdjustment = R.propOr(1, type, gasAdjustment);
+    if (gasUsed) {
+      const gasLimit = Math.floor(gasUsed * _gasAdjustment);
+      const feeAmount = R.pathOr(0, ['amount', 0, 'amount'], calculateFee({ gasPrice, gasLimit }));
+      return feeAmount / 10 ** chainInfo.decimals;
+    }
+  };
+
+  const feeSimulatorFromGasConfig = (gasConfig) => {
+    const getFee = (_gasConfig, type, gasUsed) => {
+      const { gasPrice, gasAdjustment } = chainInfo;
+      const _gasAdjustment = R.propOr(1, type, gasAdjustment);
+      if (gasUsed) {
+        const gasLimit = Math.floor(gasUsed * _gasAdjustment);
+        const feeAmount = R.pathOr(
+          0,
+          ['amount', 0, 'amount'],
+          calculateFee({ gasPrice, gasLimit })
+        );
+        return feeAmount / 10 ** chainInfo.decimals;
+      }
+    };
+    return R.mapObjIndexed((value, key) => getFee(gasConfig, key, value), gasConfig);
+  };
+
   const _delegate = (validator, amount, memo) => {
     return staking.delegate(
       self.axiosInstance,
@@ -206,6 +300,9 @@ const createProvider = (configs) => {
   };
   const load = async () => {
     const _keyStore = await storage.getItem(keyStore);
+    self.gasConfig = await self.cacheStore.getItem();
+    self.stream.invoke('gas', self.gasConfig);
+    self.stream.invoke('fee', feeSimulatorFromGasConfig(self.gasConfig));
     const keyStore = _keyStore || {};
     self.status = R.isEmpty(keyStore) ? KEYRING_STATUSES.EMPTY : KEYRING_STATUSES.LOCKED;
     self.keyStore = keyStore;
@@ -247,12 +344,19 @@ const createProvider = (configs) => {
     return fetchTx(self.axiosInstance, txHash, time);
   };
 
-  const _fetchTxs = async query => {
+  const _fetchTxs = async (query) => {
     return fetchTxs(self.axiosInstance, query);
   };
 
   const _getEthAddress = () => {
     return self.account.ethAddress;
+  };
+
+  const getGasConfigs = () => {
+    return self.gasConfig;
+  };
+  const getFeeConfig = () => {
+    return feeSimulatorFromGasConfig(self.gasConfig);
   };
 
   const _addressConverter = (address) => {
@@ -267,6 +371,8 @@ const createProvider = (configs) => {
     load,
     generateSeed,
     transfer: _tranfer,
+    simulateTransfer: _simulateTransfer,
+    feeSimulator,
     createMnemonicKeyStore: _createMnemonicKeyStore,
     getAddress: () => self.address,
     getAccount: () => self.account,
@@ -300,6 +406,10 @@ const createProvider = (configs) => {
     signEthTransaction: _signEthTransaction,
     getEthAddress: _getEthAddress,
     addressConverter: _addressConverter,
+    getGasConfigs,
+    onGasSimulate,
+    onFeeSimulate,
+    getFeeConfig,
   };
 };
 export const validateMnemonic = (mnemonic) => {

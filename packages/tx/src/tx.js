@@ -1,13 +1,23 @@
-import { toUpper, mergeRight, is, path, propOr, prop, flatten, invoker } from 'ramda';
+import { toUpper, mergeRight, is, path, propOr, prop, flatten, invoker, always } from 'ramda';
 import { Buffer } from 'buffer';
 
-const R = { toUpper, mergeRight, is, invoker, prop, path, flatten, propOr };
+const R = { toUpper, mergeRight, is, invoker, prop, path, flatten, propOr, always };
 
 const blackhole = () => {};
 const safeExec =
   (fn) =>
   (...args) =>
     R.is(Function, fn) ? fn(...args) : null;
+
+export const simulate = (axiosInstance, tx) => {
+  const params = {
+    tx_bytes: Buffer.from(tx).toString('base64'),
+  };
+  return axiosInstance.post('/cosmos/tx/v1beta1/simulate', params)
+    .then(R.path(['data', 'gas_info', 'gas_used']))
+    .catch(R.always(null));
+};
+
 
 const _sendTx = async (axiosInstance, tx) => {
   const params = {

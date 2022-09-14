@@ -28,6 +28,7 @@ const bankTypes = [
   ['/cosmos.staking.v1beta1.MsgUndelegate', MsgUndelegate],
   ['/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward', MsgWithdrawDelegatorReward],
 ];
+
 export function encodePubkey(pubkey) {
   const pubkeyProto = PubKey.fromPartial({
     key: fromBase64(pubkey.value),
@@ -37,12 +38,14 @@ export function encodePubkey(pubkey) {
     value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
   });
 }
-export const signAmino = (
+
+const makeSignBody1  = (
   accountFromSigner,
   messages,
   fee,
   memo,
-  { accountNumber, sequence, chainId }
+  { accountNumber, sequence, chainId },
+  onSign,
 ) => {
   const registry = new Registry([...bankTypes]);
   const aminoTypes = new AminoTypes({
@@ -54,7 +57,7 @@ export const signAmino = (
   const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
   const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
   const signDoc = makeSignDocAmino(messages, fee, chainId, memo, accountNumber, sequence);
-  const { signature, signed } = sign(accountFromSigner, signDoc);
+  const signed  = signDoc;
   const signedTxBody = {
     messages: signed.msgs.map((msg) => aminoTypes.fromAmino(msg)),
     memo: signed.memo,
@@ -75,7 +78,51 @@ export const signAmino = (
   const txRaw = TxRaw.fromPartial({
     bodyBytes: signedTxBodyBytes,
     authInfoBytes: signedAuthInfoBytes,
-    signatures: [fromBase64(signature.signature, 'base64')],
+    signatures: [onSign(signDoc)],
   });
   return TxRaw.encode(txRaw).finish();
 };
+
+export const makeSignBody = (
+  accountFromSigner,
+  messages,
+  fee,
+  memo,
+  { accountNumber, sequence, chainId }
+) => {
+  return makeSignBody1(
+
+  accountFromSigner,
+  messages,
+  fee,
+  memo,
+  { accountNumber, sequence, chainId },
+    () => new Uint8Array(64)
+  )
+};
+
+
+export const signAmino = (
+  accountFromSigner,
+  messages,
+  fee,
+  memo,
+  { accountNumber, sequence, chainId }
+) => {
+
+  return makeSignBody1(
+
+  accountFromSigner,
+  messages,
+  fee,
+  memo,
+  { accountNumber, sequence, chainId },
+    (signDoc) => {
+
+  const { signature } = sign(accountFromSigner, signDoc);
+return fromBase64(signature.signature, 'base64')
+    }
+  )
+};
+
+
