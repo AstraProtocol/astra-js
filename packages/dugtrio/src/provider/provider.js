@@ -9,6 +9,7 @@ import {
   defaultTo,
   objOf,
   mapObjIndexed,
+  mergeLeft,
 } from 'ramda';
 import { EthSecp256k1HdWallet } from '@astra/wallet';
 import { Bip39, Random, Slip10RawIndex, EnglishMnemonic } from '@cosmjs/crypto';
@@ -18,8 +19,7 @@ import {
   fetchAllTxs,
   fetchTx,
   fetchTxs,
-  transfer,
-  simulateTransfer,
+  send,
   staking,
   signEthTransaction,
   detectAddressType,
@@ -27,7 +27,18 @@ import {
 } from '@astra/tx';
 import * as SignClient from '../SignClient';
 
-const R = { propOr, always, isEmpty, head, path, pathOr, defaultTo, objOf, mapObjIndexed };
+const R = {
+  propOr,
+  always,
+  isEmpty,
+  head,
+  path,
+  pathOr,
+  defaultTo,
+  objOf,
+  mapObjIndexed,
+  mergeLeft,
+};
 
 const hdPath = [
   Slip10RawIndex.hardened(44),
@@ -166,8 +177,8 @@ const createProvider = (configs) => {
   const onFeeSimulate = (callback) => {
     return self.stream.register('fee', callback);
   };
-  const _tranfer = async (recipient, amount, memo) => {
-    const gasUsed = await simulateTransfer(
+  const _send = async (recipient, amount, memo) => {
+    const gasUsed = await send.simulate(
       self.axiosInstance,
       self.chainInfo,
       self.account,
@@ -175,7 +186,7 @@ const createProvider = (configs) => {
       amount,
       memo
     );
-    return transfer(
+    return send(
       self.axiosInstance,
       self.chainInfo,
       self.account,
@@ -185,8 +196,8 @@ const createProvider = (configs) => {
       memo
     );
   };
-  const _simulateTransfer = async (recipient, amount, memo) => {
-    const gasUsed = await simulateTransfer(
+  const _simulateSend = async (recipient, amount, memo) => {
+    const gasUsed = await send.simulate(
       self.axiosInstance,
       self.chainInfo,
       self.account,
@@ -200,7 +211,7 @@ const createProvider = (configs) => {
   const storeSimulation = async (type, value) => {
     if (value) {
       const storedGasUsed = await self.cacheStore.getItem();
-      const newGasConfig = R.defaultTo({}, storedGasUsed, R.objOf(type, value));
+      const newGasConfig = R.mergeLeft(R.defaultTo({}, storedGasUsed), R.objOf(type, value));
       await self.cacheStore.setItem(newGasConfig);
       self.gasConfig = newGasConfig;
       self.stream.invoke('gas', self.gasConfig);
@@ -370,8 +381,8 @@ const createProvider = (configs) => {
   return {
     load,
     generateSeed,
-    transfer: _tranfer,
-    simulateTransfer: _simulateTransfer,
+    send: _send,
+    simulateSend: _simulateSend,
     feeSimulator,
     createMnemonicKeyStore: _createMnemonicKeyStore,
     getAddress: () => self.address,
