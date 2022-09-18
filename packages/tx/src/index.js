@@ -1,4 +1,4 @@
-export { default as transfer, simulator as simulateTransfer } from './transfer';
+export { default as send } from './send';
 export { default as staking } from './staking';
 export * from './tx';
 export * from './sign';

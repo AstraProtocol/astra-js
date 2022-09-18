@@ -1,7 +1,10 @@
-import { toUpper, mergeRight, is, path, propOr, prop, flatten, invoker, always } from 'ramda';
+import { toUpper, mergeRight, is, path, propOr, prop, flatten, invoker, always, tap } from 'ramda';
 import { Buffer } from 'buffer';
+import { fetchAccount } from './account';
+import { signAmino, makeSimulateBody } from './signAmino';
 
-const R = { toUpper, mergeRight, is, invoker, prop, path, flatten, propOr, always };
+
+const R = { toUpper, mergeRight, is, invoker, prop, path, flatten, propOr, always, tap };
 
 const blackhole = () => {};
 const safeExec =
@@ -34,6 +37,40 @@ export const sendTx = async (axiosInstance, tx) => {
   const txHashStr = R.toUpper(Buffer.from(txHash).toString('hex'));
   const logs = R.propOr([], 'logs', txResponse);
   return R.mergeRight({ txHash: txHashStr, logs }, await fetchTx(axiosInstance, txHashStr, 5));
+};
+
+export const makeTx = async (axiosInstance, account, chain, tx) => {
+  const { address } = account;
+
+  const _account = await fetchAccount(axiosInstance, address);
+  const _account2 =  {
+    accountNumber: _account.accountNumber,
+    sequence: _account.sequence,
+    chainId: chain.chainId,
+  };
+
+  const gasUsed = await simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence))
+  const stdFee = {
+    amount: [{
+      amount: tx.fee,
+      denom: chain.denom
+    }],
+    gas: `${Math.floor(gasUsed * ( tx.gasAdjustment || 1.3 ))}`
+  }
+  const txRawBytes = signAmino(
+    account,
+    tx.msgs,
+    stdFee,
+    tx.memo,
+    _account2
+  );
+  return sendTx(axiosInstance, txRawBytes);
+};
+
+export const simulateGas = async (axiosInstance, account, tx) => {
+  const { address } = account;
+  const _account = await fetchAccount(axiosInstance, address);
+  return simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence))
 };
 
 const sleep = (time) =>

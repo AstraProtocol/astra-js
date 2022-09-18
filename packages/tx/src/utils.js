@@ -14,4 +14,8 @@ const _calculateFee = (chainInfo) => {
   };
 };
 
-export { _calculateFee as calculateFee };
+const feeSimulate = (gasAdjustment, gasPrice, gasUsed) => {
+  return _calculateFee({ gasPrice, gasLimit: Math.floor(gasAdjustment * gasUsed) });
+};
+
+export { _calculateFee as calculateFee, feeSimulate };

@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-npx nodemon --watch packages/tx/src --watch packages/wallet/src --exec scripts/task babel
-npx nodemon --watch packages/dugtrio/src --watch packages/tx/lib --watch packages/wallet/lib --exec npx lerna run deloy:test --scope=@astra-sdk/dugtrio

@@ -177,25 +177,10 @@ const createProvider = (configs) => {
   const onFeeSimulate = (callback) => {
     return self.stream.register('fee', callback);
   };
-  const _send = async (recipient, amount, memo) => {
-    const gasUsed = await send.simulate(
-      self.axiosInstance,
-      self.chainInfo,
-      self.account,
-      recipient,
-      amount,
-      memo
-    );
-    return send(
-      self.axiosInstance,
-      self.chainInfo,
-      self.account,
-      recipient,
-      amount,
-      _feeSimulator(gasUsed, 'send'),
-      memo
-    );
+  const _send = async (recipient, amount, fee) => {
+    return send(self.axiosInstance, self.chainInfo, self.account, recipient, amount, fee);
   };
+
   const _simulateSend = async (recipient, amount, memo) => {
     const gasUsed = await send.simulate(
       self.axiosInstance,
@@ -216,13 +201,6 @@ const createProvider = (configs) => {
       self.gasConfig = newGasConfig;
       self.stream.invoke('gas', self.gasConfig);
       self.stream.invoke('fee', feeSimulatorFromGasConfig(self.gasConfig));
-    }
-  };
-
-  const _feeSimulator = (gasUsed, type) => {
-    const { gasPrice, gasAdjustment } = chainInfo;
-    if (gasUsed) {
-      return calculateFee({ gasPrice, gasLimit: Math.floor(gasAdjustment[type] * gasUsed) });
     }
   };
 

@@ -34,7 +34,7 @@ const installNewPackage = async () => {
     console.log(chalk.blue('Deloy script done!'))
 }
 (async () => {
-  const unsubscribeSubscription = createFileChangeObserver(sdkPackages,async () => {
+  const unsubscribeSubscription = createFileChangeObserver(sdkPackages, async () => {
     await $`scripts/task babel`
     console.log(chalk.blue('Babel script done!'))
   });
