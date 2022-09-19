@@ -27,6 +27,7 @@ import {
 } from '@astra/tx';
 import * as tendermintClient from '@astra/tendermint-client';
 import * as SignClient from '../SignClient';
+import { async } from 'rxjs';
 
 const R = {
   propOr,
@@ -81,7 +82,8 @@ const createProvider = (configs) => {
     balances: {},
     signClient: null,
     gasConfig: {},
-    cacheStore: storageGenerator('cache'),
+    cacheStore: storageGenerator('GAS_CACHE'),
+    httpClient: tendermintClient,
   };
 
   const initSignClient = async (options) => {
@@ -182,14 +184,13 @@ const createProvider = (configs) => {
     return send(self.axiosInstance, self.chainInfo, self.account, recipient, amount, fee);
   };
 
-  const _simulateSend = async (recipient, amount, memo) => {
+  const _simulateSend = async (recipient, amount) => {
     const gasUsed = await send.simulate(
       self.axiosInstance,
       self.chainInfo,
       self.account,
       recipient,
-      amount,
-      memo
+      amount
     );
     storeSimulation('send', gasUsed);
   };
@@ -233,17 +234,27 @@ const createProvider = (configs) => {
     return R.mapObjIndexed((value, key) => getFee(gasConfig, key, value), gasConfig);
   };
 
-  const _delegate = (validator, amount, memo) => {
+  const _delegate = (validator, amount, fee) => {
     return staking.delegate(
       self.axiosInstance,
       self.chainInfo,
       self.account,
       validator,
       amount,
-      memo
+      fee
     );
   };
-  const _reDelegate = (srcValidator, dstValidator, amount, memo) => {
+  const simulateDelegate = async (validator, amount) => {
+    const gasUsed = await staking.delegate.simulate(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      validator,
+      amount
+    );
+    storeSimulation('delegate', gasUsed);
+  };
+  const _reDelegate = (srcValidator, dstValidator, amount, fee) => {
     return staking.reDelegate(
       self.axiosInstance,
       self.chainInfo,
@@ -251,27 +262,58 @@ const createProvider = (configs) => {
       srcValidator,
       dstValidator,
       amount,
-      memo
+      fee
     );
   };
-  const _unDelegate = (validator, amount, memo) => {
+  const simulateReDelegate = async (srcValidator, dstValidator, amount) => {
+    const gasUsed = await staking.reDelegate.simulate(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      srcValidator,
+      dstValidator,
+      amount
+    );
+    storeSimulation('reDelegate', gasUsed);
+  };
+  const _unDelegate = (validator, amount, fee) => {
     return staking.unDelegate(
       self.axiosInstance,
       self.chainInfo,
       self.account,
       validator,
       amount,
-      memo
+      fee
     );
   };
-  const _withdrawDelegatorReward = (validator, memo) => {
+  const simulateUnDelegate = async (validator, amount) => {
+    const gasUsed = await staking.unDelegate.simulate(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      validator,
+      amount
+    );
+    storeSimulation('unDelegate', gasUsed);
+  };
+  const _withdrawDelegatorReward = (validator, fee) => {
     return staking.withdrawDelegatorReward(
       self.axiosInstance,
       self.chainInfo,
       self.account,
       validator,
-      memo
+      fee
     );
+  };
+
+  const simulateWithdrawDelegatorReward = async (validator) => {
+    const gasUsed = await staking.withdrawDelegatorReward.simulate(
+      self.axiosInstance,
+      self.chainInfo,
+      self.account,
+      validator
+    );
+    storeSimulation('getReward', gasUsed);
   };
 
   const fetchBalances = async () => {
@@ -289,7 +331,6 @@ const createProvider = (configs) => {
     return balances;
   };
   const load = async () => {
-    console.log(tendermintClient);
     const _keyStore = await storage.getItem(keyStore);
     self.gasConfig = await self.cacheStore.getItem();
     self.stream.invoke('gas', self.gasConfig);
@@ -401,6 +442,10 @@ const createProvider = (configs) => {
     onGasSimulate,
     onFeeSimulate,
     getFeeConfig,
+    simulateDelegate,
+    simulateReDelegate,
+    simulateWithdrawDelegatorReward,
+    simulateUnDelegate,
   };
 };
 export const validateMnemonic = (mnemonic) => {

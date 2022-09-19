@@ -1,53 +1,36 @@
-import { makeSimulateBody,  signAmino } from './signAmino';
-import { fetchAccount } from './account';
-import { sendTx , simulate} from './tx';
-import { calculateFee } from './utils';
+import { makeTx, simulateGas } from './tx';
 
-const withdrawDelegatorReward = async (axiosInstance, chainInfo, account, validator, memo = '') => {
-  const { address, ...keys } = account;
-
-  const fee = calculateFee(chainInfo);
-  const _validators = Array.isArray(validator) ? validator : [validator];
-  const msgs = _validators.map((_validator) => ({
-      type: 'cosmos-sdk/MsgWithdrawDelegationReward',
-      value: {
-        validator_address: _validator,
-        delegator_address: address,
-      },
-    }))
-
-  const _account = await fetchAccount(axiosInstance, address);
-
-  const txRawBytes = signAmino(
-    keys,
-    msgs,
-    fee,
-    memo,
-    {
-      accountNumber: _account.accountNumber,
-      sequence: _account.sequence,
-      chainId: chainInfo.chainId,
-    }
-  );
-
-  return sendTx(axiosInstance, txRawBytes);
-};
-
-const simulateGasWithdrawDelegatorReward = async (axiosInstance, _, account, validator, memo = '') => {
+const withdrawDelegatorReward = async (axiosInstance, chainInfo, account, validator, fee) => {
   const { address } = account;
 
   const _validators = Array.isArray(validator) ? validator : [validator];
   const msgs = _validators.map((_validator) => ({
-      type: 'cosmos-sdk/MsgWithdrawDelegationReward',
-      value: {
-        validator_address: _validator,
-        delegator_address: address,
-      },
-    }))
-  const _account = await fetchAccount(axiosInstance, address);
+    type: 'cosmos-sdk/MsgWithdrawDelegationReward',
+    value: {
+      validator_address: _validator,
+      delegator_address: address,
+    },
+  }))
 
-  const txRawBytes = makeSimulateBody(msgs, memo, _account.sequence);
-  return simulate(axiosInstance, txRawBytes);
+  const tx = {
+    msgs,
+    fee,
+  }
+  return makeTx(axiosInstance, account, chainInfo, tx);
+};
+
+const simulateGasWithdrawDelegatorReward = async (axiosInstance, _, account, validator) => {
+  const { address } = account;
+
+  const _validators = Array.isArray(validator) ? validator : [validator];
+  const msgs = _validators.map((_validator) => ({
+    type: 'cosmos-sdk/MsgWithdrawDelegationReward',
+    value: {
+      validator_address: _validator,
+      delegator_address: address,
+    },
+  }));
+  return simulateGas(axiosInstance, account, { msgs })
 };
 
 

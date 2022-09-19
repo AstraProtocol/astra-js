@@ -87,7 +87,7 @@ const makeSignBody1  = (
 
 export const makeSimulateBody  = (
   messages,
-  memo,
+  memo = '',
   sequence ,
 ) => {
   const signedTxBody = {

@@ -1,28 +1,25 @@
 import { actualAmount } from './tx-helper';
 import { makeTx, simulateGas } from './tx';
 
-const delegate = async (axiosInstance, chainInfo, account, validator, amount, fee) => {
+const unDelegate = async (axiosInstance, chainInfo, account, validator, amount, fee) => {
   const { address } = account;
   const msg = {
-    type: 'cosmos-sdk/MsgDelegate',
+    type: 'cosmos-sdk/MsgUndelegate',
     value: {
       validator_address: validator,
       delegator_address: address,
       amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
     },
   };
-
-  const tx = {
-    msgs: [msg],
-    fee,
-  }
+  const tx = {msgs: [msg], fee}
   return makeTx(axiosInstance, account, chainInfo, tx);
 };
 
-const simulateGasDelegate = async (axiosInstance, chainInfo, account, validator, amount) => {
+const simulateGasUnDelegate = async (axiosInstance, chainInfo, account, validator, amount) => {
   const { address } = account;
+
   const msg = {
-    type: 'cosmos-sdk/MsgDelegate',
+    type: 'cosmos-sdk/MsgUndelegate',
     value: {
       validator_address: validator,
       delegator_address: address,
@@ -32,6 +29,7 @@ const simulateGasDelegate = async (axiosInstance, chainInfo, account, validator,
   return simulateGas(axiosInstance, account, { msgs: [msg] })
 };
 
-delegate.simulate = simulateGasDelegate;
 
-export default delegate;
+unDelegate .simulate = simulateGasUnDelegate;
+
+export default unDelegate;

@@ -24,7 +24,7 @@ const send = async (axiosInstance, chainInfo, account, recipient, amount, _fee, 
   return makeTx(axiosInstance, account, chainInfo, tx);
 }
 
-const simulator = async (axiosInstance, chainInfo, account, recipient, amount, _memo = '') => {
+const simulator = async (axiosInstance, chainInfo, account, recipient, amount) => {
   const { address } = account;
   const _msg = { type: 'cosmos-sdk/MsgSend',
     value: {
