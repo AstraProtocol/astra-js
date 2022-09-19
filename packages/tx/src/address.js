@@ -54,15 +54,8 @@ export function addressConverter(prefix) {
 }
 
 export function detectAddressType(prefix, address) {
-  const converter = addressConverter(prefix);
-  const _toHex = R.tryCatch(converter.toHex, R.always(''));
-  const _toBech32 = R.tryCatch(converter.toBech32, R.always(''));
-
-  const isHex = R.compose(R.equals(address), _toHex, _toBech32)(address);
-  const isBech32 = R.compose(R.equals(address), _toBech32, _toHex)(address);
-
   return {
-    isHex,
-    isBech32,
+    isHex: String(address).startsWith('0x'),
+    isBech32: String(address).startsWith(String(prefix)),
   };
 }
