@@ -25,6 +25,7 @@ import {
   detectAddressType,
   calculateFee,
 } from '@astra/tx';
+import * as tendermintClient from '@astra/tendermint-client';
 import * as SignClient from '../SignClient';
 
 const R = {
@@ -288,6 +289,7 @@ const createProvider = (configs) => {
     return balances;
   };
   const load = async () => {
+    console.log(tendermintClient);
     const _keyStore = await storage.getItem(keyStore);
     self.gasConfig = await self.cacheStore.getItem();
     self.stream.invoke('gas', self.gasConfig);

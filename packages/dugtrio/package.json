@@ -29,6 +29,7 @@
     "ramda": "0.x"
   },
   "dependencies": {
+    "@astra/tendermint-client": "^1.0.3",
     "@astra/tx": "^2.3.19",
     "@astra/wallet": "^2.3.19",
     "@cosmjs/amino": "^0.28.10",
@@ -55,8 +56,8 @@
     "@babel/cli": "^7.18.6",
     "@babel/core": "^7.17.9",
     "@babel/eslint-parser": "^7.16.0",
-    "@babel/plugin-proposal-optional-chaining": "^7.18.9",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/plugin-proposal-optional-chaining": "^7.18.9",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-stage-3": "^7.8.3",
     "@babel/register": "^7.16.0",

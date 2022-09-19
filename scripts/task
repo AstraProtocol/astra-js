@@ -40,15 +40,14 @@ homepage=`cat "$root/package.json" | grep -i "\"homepage\"" | awk -F[\"] '{print
 
 babel="$root/node_modules/.bin/babel"
 babelargs="--config-file $root/.babelrc.js --verbose --relative $root/packages/**/src/ -d ../lib"
-tsc="$root/node_modules/.bin/tsc"
 
 
 case $1 in
   babel)
     exe "$babel $babelargs"
     ;;
-  tsc)
-    exe "$tsc --build"
+  babel)
+    exe "node $root/scripts/babel-build.mjs"
     ;;
   prepublish-connector)
     echo 123

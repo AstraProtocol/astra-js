@@ -32,5 +32,8 @@
   },
   "devDependencies": {
     "typescript": "^4.8.3"
+  },
+  "buildConfig": {
+    "tool": "tsc"
   }
 }

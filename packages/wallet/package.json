@@ -10,5 +10,6 @@
     "@cosmjs/amino": "^0.28.10",
     "@cosmjs/crypto": "^0.28.10",
     "@cosmjs/encoding": "^0.28.10"
-  }
+  },
+  "buildTool": "babel"
 }

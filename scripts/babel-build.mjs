@@ -3,9 +3,9 @@ import process from 'node:process';
 import chalk from 'chalk';
 import chokidar from 'chokidar';
 import * as R from 'ramda';
-import runner from './watch-package-change.mjs';
 
 import { Observable, debounceTime } from 'rxjs';
+const sdkPackages = ['./packages/tx/src', './packages/wallet/src'];
 const buildPackages = ['./packages/tx/lib', './packages/wallet/lib', './packages/dugtrio/src'];
 
 const filesChange = (directoryPath, callback) => {
@@ -35,7 +35,10 @@ const installNewPackage = async () => {
 }
 
 (async () => {
-  const unsubscribeSubscription = await runner();
+  const unsubscribeSubscription = createFileChangeObserver(sdkPackages, async () => {
+    await $`scripts/task babel`
+    console.log(chalk.blue('Babel script done!'))
+  });
   const unsubscribeBuildSubscription = createFileChangeObserver(buildPackages,installNewPackage);
 
 
