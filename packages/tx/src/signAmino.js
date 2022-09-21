@@ -28,6 +28,16 @@ const bankTypes = [
   ['/cosmos.staking.v1beta1.MsgUndelegate', MsgUndelegate],
   ['/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward', MsgWithdrawDelegatorReward],
 ];
+
+const AMINO_TYPES = new AminoTypes({
+  ...createBankAminoConverters(),
+  ...createStakingAminoConverters('astra'),
+  ...createDistributionAminoConverters(),
+});
+
+const REGISTRY = new Registry(bankTypes);
+
+const SIGN_MODE = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
 export function encodePubkey(pubkey) {
   const pubkeyProto = PubKey.fromPartial({
     key: fromBase64(pubkey.value),
@@ -37,33 +47,28 @@ export function encodePubkey(pubkey) {
     value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
   });
 }
-export const signAmino = (
+
+const makeSignBody1  = (
   accountFromSigner,
   messages,
   fee,
   memo,
-  { accountNumber, sequence, chainId }
+  { accountNumber, sequence, chainId },
+  onSign,
 ) => {
-  const registry = new Registry([...bankTypes]);
-  const aminoTypes = new AminoTypes({
-    ...createBankAminoConverters(),
-    ...createStakingAminoConverters('astra'),
-    ...createDistributionAminoConverters(),
-  });
-
   const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
   const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
   const signDoc = makeSignDocAmino(messages, fee, chainId, memo, accountNumber, sequence);
-  const { signature, signed } = sign(accountFromSigner, signDoc);
+  const signed  = signDoc;
   const signedTxBody = {
-    messages: signed.msgs.map((msg) => aminoTypes.fromAmino(msg)),
+    messages: signed.msgs.map(i => AMINO_TYPES.fromAmino(i)),
     memo: signed.memo,
   };
   const signedTxBodyEncodeObject = {
     typeUrl: '/cosmos.tx.v1beta1.TxBody',
     value: signedTxBody,
   };
-  const signedTxBodyBytes = registry.encode(signedTxBodyEncodeObject);
+  const signedTxBodyBytes = REGISTRY.encode(signedTxBodyEncodeObject);
   const signedGasLimit = Int53.fromString(signed.fee.gas).toNumber();
   const signedSequence = Int53.fromString(signed.sequence).toNumber();
   const signedAuthInfoBytes = makeAuthInfoBytes(
@@ -75,7 +80,53 @@ export const signAmino = (
   const txRaw = TxRaw.fromPartial({
     bodyBytes: signedTxBodyBytes,
     authInfoBytes: signedAuthInfoBytes,
-    signatures: [fromBase64(signature.signature, 'base64')],
+    signatures: [onSign(signDoc)],
   });
   return TxRaw.encode(txRaw).finish();
 };
+
+export const makeSimulateBody  = (
+  messages,
+  memo = '',
+  sequence ,
+) => {
+  const signedTxBody = {
+    messages: messages.map(i =>  AMINO_TYPES.fromAmino(i)),
+    memo,
+  };
+
+  const signedTxBodyEncodeObject = {
+    typeUrl: '/cosmos.tx.v1beta1.TxBody',
+    value: signedTxBody,
+  };
+  const signedTxBodyBytes = REGISTRY.encode(signedTxBodyEncodeObject);
+  const signedSequence = Int53.fromString(sequence).toNumber();
+  const signedAuthInfoBytes = makeAuthInfoBytes([{ sequence: signedSequence }], [], 0, SIGN_MODE);
+  const txRaw = TxRaw.fromPartial({
+    bodyBytes: signedTxBodyBytes,
+    authInfoBytes: signedAuthInfoBytes,
+    signatures: [new Uint8Array(64)],
+  });
+  return TxRaw.encode(txRaw).finish();
+};
+
+export const signAmino = (
+  accountFromSigner,
+  messages,
+  fee,
+  memo = '',
+  { accountNumber, sequence, chainId }
+) => {
+  return makeSignBody1(
+    accountFromSigner,
+    messages,
+    fee,
+    memo, { accountNumber, sequence, chainId },
+    (signDoc) => {
+      const { signature } = sign(accountFromSigner, signDoc);
+      return fromBase64(signature.signature, 'base64')
+    }
+  )
+};
+
+

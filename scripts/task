@@ -46,6 +46,9 @@ case $1 in
   babel)
     exe "$babel $babelargs"
     ;;
+  babel)
+    exe "node $root/scripts/babel-build.mjs"
+    ;;
   prepublish-connector)
     echo 123
     ;;

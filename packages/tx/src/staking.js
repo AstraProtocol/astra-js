@@ -1,9 +1,8 @@
-import { signAmino } from './signAmino';
-import { actualAmount } from './tx-helper';
-import { fetchAccount } from './account';
-import { sendTx } from './tx';
-import { calculateFee } from './utils';
 import { compose, sum, flatten, prop, mergeLeft, map, find, propEq, pathOr, filter } from 'ramda';
+import  delegate  from './delegate';
+import  reDelegate  from './re-delegate';
+import unDelegate  from './undelegate';
+import withdrawDelegatorReward  from './get-reward';
 
 const R = { compose, sum, flatten, prop, pathOr, map, mergeLeft, find, propEq, filter };
 
@@ -34,139 +33,7 @@ const getAll = async (getItemFromRes, url, axiosInstance) => {
   }
 };
 
-const delegate = async (axiosInstance, chainInfo, account, validator, amount, memo = '') => {
-  const { address, ...keys } = account;
 
-  const fee = calculateFee(chainInfo);
-
-  const msg = {
-    type: 'cosmos-sdk/MsgDelegate',
-    value: {
-      validator_address: validator,
-      delegator_address: address,
-      amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
-    },
-  };
-  const _account = await fetchAccount(axiosInstance, address);
-
-  const txRawBytes = signAmino(keys, [msg], fee, memo, {
-    accountNumber: _account.accountNumber,
-    sequence: _account.sequence,
-    chainId: chainInfo.chainId,
-  });
-
-  return sendTx(axiosInstance, txRawBytes);
-};
-
-const reDelegate = async (
-  axiosInstance,
-  chainInfo,
-  account,
-  srcValidator,
-  dstValidator,
-  amount,
-  memo = ''
-) => {
-  const { address, ...keys } = account;
-
-  const fee = calculateFee(chainInfo);
-
-  const msg = {
-    type: 'cosmos-sdk/MsgBeginRedelegate',
-    value: {
-      validator_src_address: srcValidator,
-      validator_dst_address: dstValidator,
-      delegator_address: address,
-      amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
-    },
-  };
-  const _account = await fetchAccount(axiosInstance, address);
-
-  const txRawBytes = signAmino(
-    keys,
-    [msg],
-    fee,
-    memo,
-
-    {
-      accountNumber: _account.accountNumber,
-      sequence: _account.sequence,
-      chainId: chainInfo.chainId,
-    }
-  );
-  return sendTx(axiosInstance, txRawBytes);
-};
-
-const unDelegate = async (axiosInstance, chainInfo, account, validator, amount, memo = '') => {
-  const { address, ...keys } = account;
-
-  const fee = calculateFee(chainInfo);
-
-  const msg = {
-    type: 'cosmos-sdk/MsgUndelegate',
-    value: {
-      validator_address: validator,
-      delegator_address: address,
-      amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
-    },
-  };
-  const _account = await fetchAccount(axiosInstance, address);
-
-  const txRawBytes = signAmino(
-    keys,
-    [msg],
-    fee,
-    memo,
-
-    {
-      accountNumber: _account.accountNumber,
-      sequence: _account.sequence,
-      chainId: chainInfo.chainId,
-    }
-  );
-  return sendTx(axiosInstance, txRawBytes);
-};
-
-const withdrawDelegatorReward = async (axiosInstance, chainInfo, account, validator, memo = '') => {
-  const { address, ...keys } = account;
-
-  const fee = calculateFee(chainInfo);
-
-  let msgs = [];
-  if (Array.isArray(validator)) {
-    msgs = validator.map((v) => ({
-      type: 'cosmos-sdk/MsgWithdrawDelegationReward',
-      value: {
-        validator_address: v,
-        delegator_address: address,
-      },
-    }));
-  } else {
-    msgs.push({
-      type: 'cosmos-sdk/MsgWithdrawDelegationReward',
-      value: {
-        validator_address: validator,
-        delegator_address: address,
-      },
-    });
-  }
-  const _account = await fetchAccount(axiosInstance, address);
-
-  const txRawBytes = signAmino(
-    keys,
-    msgs,
-    fee,
-    memo,
-
-    {
-      accountNumber: _account.accountNumber,
-      sequence: _account.sequence,
-      chainId: chainInfo.chainId,
-    }
-  );
-
-  return sendTx(axiosInstance, txRawBytes);
-};
 
 const getValidators = async (axiosInstance, { address }) => {
   try {
@@ -284,13 +151,14 @@ const getValidator = async (axiosInstance, account, validatorAddress) => {
     delegation: datas[3].data,
   };
 };
+
 export default {
   getValidators,
-  delegate,
-  reDelegate,
-  unDelegate,
-  withdrawDelegatorReward,
   getValidator,
   getUnbondingDelegations,
   getUnbondingDelegation,
+  delegate  ,
+  unDelegate,
+  reDelegate,
+  withdrawDelegatorReward
 };
