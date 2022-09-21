@@ -10,6 +10,7 @@ import {
   objOf,
   mapObjIndexed,
   mergeLeft,
+  mergeRight,
 } from 'ramda';
 import { EthSecp256k1HdWallet } from '@astra/wallet';
 import { Bip39, Random, Slip10RawIndex, EnglishMnemonic } from '@cosmjs/crypto';
@@ -27,7 +28,14 @@ import {
 } from '@astra/tx';
 import * as tendermintClient from '@astra/tendermint-client';
 import * as SignClient from '../SignClient';
-import { async } from 'rxjs';
+
+export const TxTypes = {
+  SEND: 'send',
+  DELEGATE: 'delegate',
+  RE_DELEGATE: 're-delegate',
+  UNBOND: 'unbond',
+  GET_REWARD: 'get-reward',
+};
 
 const R = {
   propOr,
@@ -40,6 +48,7 @@ const R = {
   objOf,
   mapObjIndexed,
   mergeLeft,
+  mergeRight,
 };
 
 const hdPath = [
@@ -180,7 +189,9 @@ const createProvider = (configs) => {
   const onFeeSimulate = (callback) => {
     return self.stream.register('fee', callback);
   };
-  const _send = async (recipient, amount, fee) => {
+
+  const _send = async (recipient, amount) => {
+    const fee = astra2aastra(feeSimulator(TxTypes.SEND));
     return send(self.axiosInstance, self.chainInfo, self.account, recipient, amount, fee);
   };
 
@@ -192,13 +203,13 @@ const createProvider = (configs) => {
       recipient,
       amount
     );
-    storeSimulation('send', gasUsed);
+    storeSimulation(TxTypes.SEND, gasUsed);
   };
 
   const storeSimulation = async (type, value) => {
     if (value) {
       const storedGasUsed = await self.cacheStore.getItem();
-      const newGasConfig = R.mergeLeft(R.defaultTo({}, storedGasUsed), R.objOf(type, value));
+      const newGasConfig = R.mergeRight(R.defaultTo({}, storedGasUsed), R.objOf(type, value));
       await self.cacheStore.setItem(newGasConfig);
       self.gasConfig = newGasConfig;
       self.stream.invoke('gas', self.gasConfig);
@@ -215,6 +226,10 @@ const createProvider = (configs) => {
       const feeAmount = R.pathOr(0, ['amount', 0, 'amount'], calculateFee({ gasPrice, gasLimit }));
       return feeAmount / 10 ** chainInfo.decimals;
     }
+  };
+
+  const astra2aastra = (amount) => {
+    return `${amount * 10 ** chainInfo.decimals}`;
   };
 
   const feeSimulatorFromGasConfig = (gasConfig) => {
@@ -234,7 +249,8 @@ const createProvider = (configs) => {
     return R.mapObjIndexed((value, key) => getFee(gasConfig, key, value), gasConfig);
   };
 
-  const _delegate = (validator, amount, fee) => {
+  const _delegate = (validator, amount) => {
+    const fee = astra2aastra(feeSimulator(TxTypes.DELEGATE));
     return staking.delegate(
       self.axiosInstance,
       self.chainInfo,
@@ -252,9 +268,10 @@ const createProvider = (configs) => {
       validator,
       amount
     );
-    storeSimulation('delegate', gasUsed);
+    storeSimulation(TxTypes.DELEGATE, gasUsed);
   };
-  const _reDelegate = (srcValidator, dstValidator, amount, fee) => {
+  const _reDelegate = (srcValidator, dstValidator, amount) => {
+    const fee = astra2aastra(feeSimulator(TxTypes.RE_DELEGATE));
     return staking.reDelegate(
       self.axiosInstance,
       self.chainInfo,
@@ -274,9 +291,10 @@ const createProvider = (configs) => {
       dstValidator,
       amount
     );
-    storeSimulation('reDelegate', gasUsed);
+    storeSimulation(TxTypes.RE_DELEGATE, gasUsed);
   };
-  const _unDelegate = (validator, amount, fee) => {
+  const _unDelegate = (validator, amount) => {
+    const fee = astra2aastra(feeSimulator(TxTypes.UNBOND));
     return staking.unDelegate(
       self.axiosInstance,
       self.chainInfo,
@@ -294,9 +312,10 @@ const createProvider = (configs) => {
       validator,
       amount
     );
-    storeSimulation('unDelegate', gasUsed);
+    storeSimulation(TxTypes.UNBOND, gasUsed);
   };
-  const _withdrawDelegatorReward = (validator, fee) => {
+  const _withdrawDelegatorReward = (validator) => {
+    const fee = astra2aastra(feeSimulator(TxTypes.GET_REWARD));
     return staking.withdrawDelegatorReward(
       self.axiosInstance,
       self.chainInfo,
@@ -313,7 +332,7 @@ const createProvider = (configs) => {
       self.account,
       validator
     );
-    storeSimulation('getReward', gasUsed);
+    storeSimulation(TxTypes.GET_REWARD, gasUsed);
   };
 
   const fetchBalances = async () => {

@@ -114,7 +114,7 @@ export const signAmino = (
   accountFromSigner,
   messages,
   fee,
-  memo,
+  memo = '',
   { accountNumber, sequence, chainId }
 ) => {
   return makeSignBody1(

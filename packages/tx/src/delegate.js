@@ -2,6 +2,7 @@ import { actualAmount } from './tx-helper';
 import { makeTx, simulateGas } from './tx';
 
 const delegate = async (axiosInstance, chainInfo, account, validator, amount, fee) => {
+  console.log(chainInfo, account, validator, amount, fee);
   const { address } = account;
   const msg = {
     type: 'cosmos-sdk/MsgDelegate',
@@ -16,6 +17,7 @@ const delegate = async (axiosInstance, chainInfo, account, validator, amount, fe
     msgs: [msg],
     fee,
   }
+  console.log(tx);
   return makeTx(axiosInstance, account, chainInfo, tx);
 };
 

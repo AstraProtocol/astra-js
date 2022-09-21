@@ -1,7 +1,4 @@
 import { actualAmount } from './tx-helper';
-import { makeTx } from './tx';
-
-import { actualAmount } from './tx-helper';
 import { makeTx, simulateGas } from './tx';
 
 const reDelegate = async (
