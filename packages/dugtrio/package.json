@@ -29,7 +29,6 @@
     "ramda": "0.x"
   },
   "dependencies": {
-    "@astra/tendermint-client": "^1.0.3",
     "@astra/tx": "^2.3.19",
     "@astra/wallet": "^2.3.19",
     "@cosmjs/amino": "^0.28.10",
