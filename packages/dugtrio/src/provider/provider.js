@@ -26,7 +26,6 @@ import {
   detectAddressType,
   calculateFee,
 } from '@astra/tx';
-import * as tendermintClient from '@astra/tendermint-client';
 import * as SignClient from '../SignClient';
 
 export const TxTypes = {
@@ -92,7 +91,6 @@ const createProvider = (configs) => {
     signClient: null,
     gasConfig: {},
     cacheStore: storageGenerator('GAS_CACHE'),
-    httpClient: tendermintClient,
   };
 
   const initSignClient = async (options) => {
