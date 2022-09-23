@@ -216,14 +216,12 @@ const createProvider = (configs) => {
   };
 
   const feeSimulator = (type) => {
-    const gasUsed = self.gasConfig && self.gasConfig[type];
+    const gasUsed = R.propOr(chainInfo.gasLimit, type, self.gasConfig);
     const { gasPrice, gasAdjustment } = chainInfo;
-    const _gasAdjustment = R.propOr(1, type, gasAdjustment);
-    if (gasUsed) {
-      const gasLimit = Math.floor(gasUsed * _gasAdjustment);
-      const feeAmount = R.pathOr(0, ['amount', 0, 'amount'], calculateFee({ gasPrice, gasLimit }));
-      return feeAmount / 10 ** chainInfo.decimals;
-    }
+    const _gasAdjustment = R.propOr(1.3, type, gasAdjustment);
+    const gasLimit = Math.floor(gasUsed * _gasAdjustment);
+    const feeAmount = R.pathOr(0, ['amount', 0, 'amount'], calculateFee({ gasPrice, gasLimit }));
+    return feeAmount / 10 ** chainInfo.decimals;
   };
 
   const astra2aastra = (amount) => {
