@@ -1,6 +1,6 @@
 {
   "name": "@astra-sdk/dugtrio",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "module": "dist/index.js",
   "main": "dist/index.js",
   "license": "MIT",
@@ -29,8 +29,8 @@
     "ramda": "0.x"
   },
   "dependencies": {
-    "@astra/tx": "^2.3.19",
-    "@astra/wallet": "^2.3.19",
+    "@astra/tx": "*",
+    "@astra/wallet": "*",
     "@cosmjs/amino": "^0.28.10",
     "@cosmjs/crypto": "^0.28.10",
     "@cosmjs/encoding": "^0.28.10",
