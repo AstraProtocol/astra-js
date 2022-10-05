@@ -3,38 +3,96 @@ import {
   Button, Form, Input, Select
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  RELAY_URL,
-  SignClient,
-  QRCodeModal
-} from '@astra-sdk/wallet-connect/lib/index';
 import ValidatorSelect from './components/ValidatorSelect';
+import SignClient from '@walletconnect/sign-client';
+import QRCodeModal from '@walletconnect/qrcode-modal';
+import axios from 'axios';
+import _ from 'lodash';
+import { getTxRaw } from './utils';
 
+const DENOM = 'aastra';
+const GAS_LIMIT = 200000;
+const GAS_PRICE = 1000000000; // aastra
 const NETWORKS = [
   {
     name: 'Testnet',
     key: 'testnet',
     rpc: 'https://rpc.astranaut.dev',
-    api: 'https://api.astranaut.dev'
+    api: 'https://api.astranaut.dev',
+    chainId: 'astra_11115-1'
   },
   {
     name: 'Mainnet',
     key: 'mainnet',
     rpc: 'https://rpc.astranaut.dev',
-    api: 'https://api.astranaut.dev'
+    api: 'https://api.astranaut.dev',
+    chainId: 'astra_11115-1'
   }
 ];
 const NETWORK_PREFIX = 'astra-';
 
 
 const PROTOCOL = 'ws://'; // Swith to wss in production
+const getAccountNumberAndSequence = async (address, rpc) => {
+  try {
+    const res = await axios({
+      url: rpc + '/auth/accounts/' + address
+    })
+    return {
+      account_number: _.get(res, 'data.result.base_account.account_number'),
+      sequence: _.get(res, 'data.result.base_account.sequence', 0),
+    }
+  } catch(e) {
+    return {};
+  }
+};
+
+const TransferForm = props => {
+  const { onSubmit } = props;
+  
+  const onFinish = (values) => {
+    console.log(props)
+    onSubmit(values)
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
+
+  return <Form
+    onFinish={onFinish}
+    onFinishFailed={onFinishFailed}
+    autoComplete="off"
+    >
+
+    <b>Transfer</b>
+    <Form.Item
+      label="To address"  
+      name="address"
+      rules={[{ required: true, message: 'Please input address!' }]} 
+    >
+      <Input />
+    </Form.Item>
+    <Form.Item
+      label="Amount"  
+      name="amount"
+      type="number"
+      rules={[{ required: true, message: 'Please input amount!' }]} 
+    >
+      <Input />
+    </Form.Item>
+    <div style={{textAlign: 'center'}}>
+      <Button htmlType="submit" type="primary">Submit</Button>
+    </div>
+  </Form>
+}
 
 function App() {
   
   const [network, setNetwork] = useState(NETWORKS[0]);
   const [client, setClient] = useState(null);
-  const [pairings, setPairings] = useState([]);
   const [address, setAddress] = useState(null);
+  const [session, setSession] = useState(null);
 
   const connected = !!address;
 
@@ -50,6 +108,7 @@ function App() {
     const networks = allNamespaceAccounts.map(str => str.split(':')[1].substring(NETWORK_PREFIX.length));
     onChangeNetwork(networks[0]);
     setAddress(addresses?.[0]);
+    setSession(session);
   }, [onChangeNetwork]);
 
   const connect = useCallback(async (topic) => {
@@ -58,7 +117,7 @@ function App() {
       pairingTopic: topic, // set pairingTopic with topic if you want to connect to a existed pairing
       requiredNamespaces: {
         astra: {
-          chains: [`astra:${NETWORK_PREFIX}${network}`],
+          chains: [`astra:${NETWORK_PREFIX}${network.key}`],
           events: [],
           methods: ["sign"], // sign method defined in AstraWallet
         },
@@ -82,8 +141,9 @@ function App() {
 
     QRCodeModal.close();
 
-  }, [client, network]);
+  }, [client, network, updateSession]);
 
+  // TODO: implement
   const disconnect = useCallback(() => {
 
   }, []);
@@ -92,7 +152,7 @@ function App() {
   useEffect(() => {
     (async () => {
       const client = await SignClient.init({
-        relayUrl: PROTOCOL + RELAY_URL,
+        relayUrl: 'ws://wc-relay.astranaut.dev',
         metadata: {
           name: 'DEMO DAPP',
           description: 'Demo to connect via Wallet Connect',
@@ -102,10 +162,6 @@ function App() {
           ],
         },
       });
-
-      
-      // Store existed pairings
-      setPairings(client.pairing.values);
       
       // Restore current session
       if (client.session.length > 0) {
@@ -135,6 +191,65 @@ function App() {
       setClient(client);
       
     })()
+  }, [updateSession]);
+
+
+  const onTransfer = useCallback(async ({address: recipient, amount}) => {
+    const { rpc, chainId } = network;
+    const { topic } = session;
+    const {account_number: accountNumber, sequence} = await getAccountNumberAndSequence(address, rpc);
+    const signerData = {
+      accountNumber,
+      sequence,
+      chainId,
+    }
+    // sign params
+    // https://cosmos.github.io/cosmjs/latest/stargate/interfaces/AminoMsgSend.html
+    const params = { 
+      messages: [
+        { 
+          type: 'cosmos-sdk/MsgSend',
+          value: {
+            from_address: address,
+            to_address: recipient,
+            amount: [{
+              amount: amount * 10 ** 18,
+              denom: DENOM
+            }]
+          },
+        }
+      ], 
+      fee: {
+        amount: [{
+          amount: GAS_LIMIT * GAS_PRICE,
+          denom: DENOM
+        }],
+        gas: GAS_LIMIT
+      }, 
+      memo: "From demo dapp", 
+      signerData
+    };
+    console.log({
+      prompt: true,
+      topic,
+      chainId,
+      request: {
+        method: 'sign',
+        params,
+      }
+    });
+    return;
+    const aminoResponse = await client.request({
+      prompt: true,
+      topic,
+      chainId,
+      request: {
+        method: 'sign',
+        params,
+      },
+    });
+    
+    return getTxRaw(aminoResponse);
   }, []);
   
   return (
@@ -147,7 +262,7 @@ function App() {
       {
         !connected && <>
           <div style={{width: 300, margin: 'auto'}}>
-            <Form.Item label="Select network">
+            <Form.Item label={"Select network"}>
               <Select 
                 placeholder="Select network"
                 value={network}
@@ -174,10 +289,8 @@ function App() {
               <Input readOnly value={address} />
             </Form.Item>
 
-            <b>Delegate</b>
-            <Form.Item label="Validator">
-              <ValidatorSelect api={network?.api} />
-            </Form.Item>
+            <TransferForm onSubmit={onTransfer} />
+            
           </div>
         </>
       }
