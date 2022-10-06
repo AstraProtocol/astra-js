@@ -27,6 +27,7 @@ import {
   calculateFee,
 } from '@astra/tx';
 import * as SignClient from '../SignClient';
+import { Dec } from '@keplr-wallet/unit';
 
 export const TxTypes = {
   SEND: 'send',
@@ -225,7 +226,7 @@ const createProvider = (configs) => {
   };
 
   const astra2aastra = (amount) => {
-    return `${amount * 10 ** chainInfo.decimals}`;
+    return new Dec(amount).mul(new Dec(10 ** chainInfo.decimals)).toString(0);
   };
 
   const feeSimulatorFromGasConfig = (gasConfig) => {
