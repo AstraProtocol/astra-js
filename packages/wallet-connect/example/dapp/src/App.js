@@ -3,12 +3,11 @@ import {
   Button, Form, Input, Select
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
-import ValidatorSelect from './components/ValidatorSelect';
 import SignClient from '@walletconnect/sign-client';
 import QRCodeModal from '@walletconnect/qrcode-modal';
 import axios from 'axios';
 import _ from 'lodash';
-import { getTxRaw } from './utils';
+import { getTxRaw, hex2Bech32 } from './utils';
 
 const DENOM = 'aastra';
 const GAS_LIMIT = 200000;
@@ -33,10 +32,10 @@ const NETWORK_PREFIX = 'astra-';
 
 
 const PROTOCOL = 'ws://'; // Swith to wss in production
-const getAccountNumberAndSequence = async (address, rpc) => {
+const getAccountNumberAndSequence = async (address, api) => {
   try {
     const res = await axios({
-      url: rpc + '/auth/accounts/' + address
+      url: api + '/auth/accounts/' + address
     })
     return {
       account_number: _.get(res, 'data.result.base_account.account_number'),
@@ -101,13 +100,15 @@ function App() {
   }, []);
 
   const updateSession = useCallback((session) => {
+    console.log({session})
     const allNamespaceAccounts = Object.values(session.namespaces)
       .map(namespace => namespace.accounts)
       .flat();
     const addresses = allNamespaceAccounts.map(str => str.split(':')[2]);
     const networks = allNamespaceAccounts.map(str => str.split(':')[1].substring(NETWORK_PREFIX.length));
     onChangeNetwork(networks[0]);
-    setAddress(addresses?.[0]);
+    // To sign in cosmos, you need to convert hex address to bech32 address
+    setAddress(hex2Bech32(addresses?.[0]));
     setSession(session);
   }, [onChangeNetwork]);
 
@@ -195,9 +196,9 @@ function App() {
 
 
   const onTransfer = useCallback(async ({address: recipient, amount}) => {
-    const { rpc, chainId } = network;
+    const { api, chainId } = network;
     const { topic } = session;
-    const {account_number: accountNumber, sequence} = await getAccountNumberAndSequence(address, rpc);
+    const {account_number: accountNumber, sequence} = await getAccountNumberAndSequence(address, api);
     const signerData = {
       accountNumber,
       sequence,
@@ -229,20 +230,11 @@ function App() {
       memo: "From demo dapp", 
       signerData
     };
-    console.log({
-      prompt: true,
-      topic,
-      chainId,
-      request: {
-        method: 'sign',
-        params,
-      }
-    });
-    return;
+    
     const aminoResponse = await client.request({
       prompt: true,
       topic,
-      chainId,
+      chainId: `astra:${NETWORK_PREFIX}${network.key}`,
       request: {
         method: 'sign',
         params,
@@ -250,7 +242,7 @@ function App() {
     });
     
     return getTxRaw(aminoResponse);
-  }, []);
+  }, [address, client, network, session]);
   
   return (
     <div className="main">

@@ -4,6 +4,12 @@ import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
 import { Any } from "cosmjs-types/google/protobuf/any";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import {
+  stripHexPrefix,
+  isValidChecksumAddress,
+} from 'ethereumjs-util';
+import { toBech32 } from '@cosmjs/encoding';
+
 const signing_1 = require('cosmjs-types/cosmos/tx/signing/v1beta1/signing')
 const math_1 = require('@cosmjs/math')
 const encoding_1 = require('@cosmjs/encoding')
@@ -50,4 +56,18 @@ export const getTxRaw = aminoResponse => {
   });
 
   return TxRaw.encode(txRaw).finish();
+}
+
+export const hex2Bech32 = data => {
+  const stripped = stripHexPrefix(data);
+  if (
+    !isValidChecksumAddress(data) &&
+    stripped !== stripped.toLowerCase() &&
+    stripped !== stripped.toUpperCase()
+  ) {
+    throw Error('Invalid address checksum');
+  }
+
+  const decoded = Buffer.from(stripped, 'hex');
+  return toBech32('astra', decoded);
 }
