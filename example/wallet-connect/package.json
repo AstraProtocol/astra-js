@@ -1,0 +1,43 @@
+{
+  "name": "dapp",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@astra-sdk/wallet-connect": "^1.0.2",
+    "@cosmjs/amino": "^0.29.0",
+    "@cosmjs/encoding": "^0.29.0",
+    "@cosmjs/math": "^0.29.0",
+    "@cosmjs/proto-signing": "^0.28.0",
+    "@cosmjs/utils": "^0.29.0",
+    "antd": "^4.22.4",
+    "assert": "^2.0.0",
+    "axios": "^0.27.2",
+    "buffer": "^6.0.3",
+    "camelcase": "^6.2.1",
+    "case-sensitive-paths-webpack-plugin": "^2.4.0",
+    "cosmjs-types": "^0.5.1",
+    "crypto-browserify": "^3.12.0",
+    "ethereumjs-util": "^7.1.5",
+    "events": "^3.3.0",
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.19.3",
+    "@babel/preset-react": "^7.18.6",
+    "babel-loader": "^8.2.3",
+    "babel-plugin-named-asset-import": "^0.3.8",
+    "babel-preset-react-app": "^10.0.1",
+    "css-loader": "^6.7.1",
+    "stream-browserify": "^3.0.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "scripts": {
+    "start": "webpack serve"
+  }
+}

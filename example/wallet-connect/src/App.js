@@ -3,11 +3,10 @@ import {
   Button, Card, Form, Input, message, Select
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
-import SignClient from '@walletconnect/sign-client';
-import QRCodeModal from '@walletconnect/qrcode-modal';
 import axios from 'axios';
 import _ from 'lodash';
-import { getTxRaw, hex2Bech32 } from './utils';
+import { hex2Bech32 } from './utils';
+import { SignClient, QRCodeModal, RELAY_URL } from "@astra-sdk/wallet-connect";
 
 const DENOM = 'aastra';
 const GAS_LIMIT = 200000;
@@ -30,8 +29,6 @@ const NETWORKS = [
 ];
 const NETWORK_PREFIX = 'astra-';
 
-
-const PROTOCOL = 'ws://'; // Swith to wss in production
 const getAccountNumberAndSequence = async (address, api) => {
   try {
     const res = await axios({
@@ -50,7 +47,6 @@ const TransferForm = props => {
   const { onSubmit, loading } = props;
   
   const onFinish = (values) => {
-    console.log(props)
     onSubmit(values)
   };
 
@@ -108,10 +104,10 @@ function App() {
     const addresses = allNamespaceAccounts.map(str => str.split(':')[2]);
     const networks = allNamespaceAccounts.map(str => str.split(':')[1].substring(NETWORK_PREFIX.length));
     onChangeNetwork(networks[0]);
+
     // To sign in cosmos, you need to convert hex address to bech32 address
     setAddress(hex2Bech32(addresses?.[0]));
     setSession(session);
-    console.log({session})
   }, [onChangeNetwork]);
 
   const connect = useCallback(async (topic) => {
@@ -158,7 +154,7 @@ function App() {
   useEffect(() => {
     (async () => {
       const client = await SignClient.init({
-        relayUrl: 'ws://wc-relay.astranaut.dev',
+        relayUrl: 'ws://' + RELAY_URL,
         metadata: {
           name: 'DEMO DAPP',
           description: 'Demo to connect via Wallet Connect',
