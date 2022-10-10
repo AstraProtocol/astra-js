@@ -1,40 +1,94 @@
 import './App.css';
 import {
-  Button, Form, Input, Select
+  Button, Card, Form, Input, message, Select
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  RELAY_URL,
-  SignClient,
-  QRCodeModal
-} from '@astra-sdk/wallet-connect/lib/index';
-import ValidatorSelect from './components/ValidatorSelect';
+import axios from 'axios';
+import _ from 'lodash';
+import { hex2Bech32 } from './utils';
+import { SignClient, QRCodeModal, RELAY_URL } from "@astra-sdk/wallet-connect";
 
+const DENOM = 'aastra';
+const GAS_LIMIT = 200000;
+const GAS_PRICE = 1000000000; // aastra
 const NETWORKS = [
   {
     name: 'Testnet',
     key: 'testnet',
     rpc: 'https://rpc.astranaut.dev',
-    api: 'https://api.astranaut.dev'
+    api: 'https://api.astranaut.dev',
+    chainId: 'astra_11115-1'
   },
   {
     name: 'Mainnet',
     key: 'mainnet',
     rpc: 'https://rpc.astranaut.dev',
-    api: 'https://api.astranaut.dev'
+    api: 'https://api.astranaut.dev',
+    chainId: 'astra_11115-1'
   }
 ];
 const NETWORK_PREFIX = 'astra-';
 
+const getAccountNumberAndSequence = async (address, api) => {
+  try {
+    const res = await axios({
+      url: api + '/auth/accounts/' + address
+    })
+    return {
+      account_number: _.get(res, 'data.result.base_account.account_number'),
+      sequence: _.get(res, 'data.result.base_account.sequence', 0),
+    }
+  } catch(e) {
+    return {};
+  }
+};
 
-const PROTOCOL = 'ws://'; // Swith to wss in production
+const TransferForm = props => {
+  const { onSubmit, loading } = props;
+  
+  const onFinish = (values) => {
+    onSubmit(values)
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log('Failed:', errorInfo);
+  };
+
+  return <Form
+    onFinish={onFinish}
+    onFinishFailed={onFinishFailed}
+    autoComplete="off"
+    >
+
+    <b>Transfer</b>
+    <Form.Item
+      label="To address"  
+      name="address"
+      rules={[{ required: true, message: 'Please input address!' }]} 
+    >
+      <Input />
+    </Form.Item>
+    <Form.Item
+      label="Amount"  
+      name="amount"
+      type="number"
+      rules={[{ required: true, message: 'Please input amount!' }]} 
+    >
+      <Input />
+    </Form.Item>
+    <div style={{textAlign: 'center'}}>
+      <Button loading={loading} htmlType="submit" type="primary">Submit</Button>
+    </div>
+  </Form>
+}
 
 function App() {
   
   const [network, setNetwork] = useState(NETWORKS[0]);
+  const [loading, setLoading] = useState(false);
   const [client, setClient] = useState(null);
-  const [pairings, setPairings] = useState([]);
   const [address, setAddress] = useState(null);
+  const [session, setSession] = useState(null);
 
   const connected = !!address;
 
@@ -43,13 +97,17 @@ function App() {
   }, []);
 
   const updateSession = useCallback((session) => {
+    console.log({session})
     const allNamespaceAccounts = Object.values(session.namespaces)
       .map(namespace => namespace.accounts)
       .flat();
     const addresses = allNamespaceAccounts.map(str => str.split(':')[2]);
     const networks = allNamespaceAccounts.map(str => str.split(':')[1].substring(NETWORK_PREFIX.length));
     onChangeNetwork(networks[0]);
-    setAddress(addresses?.[0]);
+
+    // To sign in cosmos, you need to convert hex address to bech32 address
+    setAddress(hex2Bech32(addresses?.[0]));
+    setSession(session);
   }, [onChangeNetwork]);
 
   const connect = useCallback(async (topic) => {
@@ -58,7 +116,7 @@ function App() {
       pairingTopic: topic, // set pairingTopic with topic if you want to connect to a existed pairing
       requiredNamespaces: {
         astra: {
-          chains: [`astra:${NETWORK_PREFIX}${network}`],
+          chains: [`astra:${NETWORK_PREFIX}${network.key}`],
           events: [],
           methods: ["sign"], // sign method defined in AstraWallet
         },
@@ -82,17 +140,21 @@ function App() {
 
     QRCodeModal.close();
 
-  }, [client, network]);
+  }, [client, network, updateSession]);
 
-  const disconnect = useCallback(() => {
-
-  }, []);
-  
+  const disconnect = useCallback(async (e) => {
+    await client.disconnect({
+      topic: session.topic,
+      reason: '',
+    });
+    setAddress(null);
+    setSession(null);
+  }, [client, session?.topic]);
 
   useEffect(() => {
     (async () => {
       const client = await SignClient.init({
-        relayUrl: PROTOCOL + RELAY_URL,
+        relayUrl: 'ws://' + RELAY_URL,
         metadata: {
           name: 'DEMO DAPP',
           description: 'Demo to connect via Wallet Connect',
@@ -102,10 +164,6 @@ function App() {
           ],
         },
       });
-
-      
-      // Store existed pairings
-      setPairings(client.pairing.values);
       
       // Restore current session
       if (client.session.length > 0) {
@@ -135,7 +193,63 @@ function App() {
       setClient(client);
       
     })()
-  }, []);
+  }, [updateSession]);
+
+
+  const onTransfer = useCallback(async ({address: recipient, amount}) => {
+    setLoading(true);
+    const { api, chainId } = network;
+    const { topic } = session;
+    const {account_number: accountNumber, sequence} = await getAccountNumberAndSequence(address, api);
+    const signerData = {
+      accountNumber,
+      sequence,
+      chainId,
+    }
+    // sign params
+    // https://cosmos.github.io/cosmjs/latest/stargate/interfaces/AminoMsgSend.html
+    const params = { 
+      messages: [
+        { 
+          type: 'cosmos-sdk/MsgSend',
+          value: {
+            from_address: address,
+            to_address: recipient,
+            amount: [{
+              amount: amount * 10 ** 18,
+              denom: DENOM
+            }]
+          },
+        }
+      ], 
+      fee: {
+        amount: [{
+          amount: GAS_LIMIT * GAS_PRICE,
+          denom: DENOM
+        }],
+        gas: GAS_LIMIT
+      }, 
+      memo: "From demo dapp", 
+      signerData
+    };
+    try {
+      const aminoResponse = await client.request({
+        prompt: true,
+        topic,
+        chainId: `astra:${NETWORK_PREFIX}${network.key}`,
+        request: {
+          method: 'sign',
+          params,
+        },
+      });
+      console.log({aminoResponse});
+      message.success({content: 'Request approved!'})
+    } catch(e) {
+      message.error({content: e?.message})
+    }
+
+    setLoading(false);
+  }, [address, client, network, session]);
   
   return (
     <div className="main">
@@ -146,8 +260,8 @@ function App() {
       </div>
       {
         !connected && <>
-          <div style={{width: 300, margin: 'auto'}}>
-            <Form.Item label="Select network">
+          <Card style={{width: 300, margin: 'auto'}}>
+            <Form.Item label={"Select network"}>
               <Select 
                 placeholder="Select network"
                 value={network}
@@ -161,26 +275,33 @@ function App() {
             <div className='text-center'>
               <Button disabled={!client} onClick={() => connect()} type="primary">{client ? 'Connect to wallet' : 'Initilizing connection'}</Button>
             </div>
-          </div>
+          </Card>
         </>
       }
       {
         connected && <>
           <div style={{width: 300, margin: 'auto'}}>
+          <Card>
             <Form.Item label="Selected network">
               <Input value={network?.name} readOnly />
             </Form.Item>
             <Form.Item label="Connected address">
-              <Input readOnly value={address} />
+              <Input.Group style={{ display: 'flex' }} compact>
+                <Input readOnly value={address}/>
+                <Button type="primary" onClick={disconnect}>Disconnect</Button>
+              </Input.Group>
             </Form.Item>
+            
+          </Card>
 
-            <b>Delegate</b>
-            <Form.Item label="Validator">
-              <ValidatorSelect api={network?.api} />
-            </Form.Item>
+          {connected && <div style={{marginTop: 30  }}>
+            <TransferForm loading={loading} onSubmit={onTransfer} />
+            </div>
+          }
           </div>
         </>
       }
+
 
     </div>
   );
