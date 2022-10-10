@@ -1,6 +1,6 @@
 import './App.css';
 import {
-  Button, Form, Input, Select
+  Button, Card, Form, Input, message, Select
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import SignClient from '@walletconnect/sign-client';
@@ -47,7 +47,7 @@ const getAccountNumberAndSequence = async (address, api) => {
 };
 
 const TransferForm = props => {
-  const { onSubmit } = props;
+  const { onSubmit, loading } = props;
   
   const onFinish = (values) => {
     console.log(props)
@@ -81,7 +81,7 @@ const TransferForm = props => {
       <Input />
     </Form.Item>
     <div style={{textAlign: 'center'}}>
-      <Button htmlType="submit" type="primary">Submit</Button>
+      <Button loading={loading} htmlType="submit" type="primary">Submit</Button>
     </div>
   </Form>
 }
@@ -89,6 +89,7 @@ const TransferForm = props => {
 function App() {
   
   const [network, setNetwork] = useState(NETWORKS[0]);
+  const [loading, setLoading] = useState(false);
   const [client, setClient] = useState(null);
   const [address, setAddress] = useState(null);
   const [session, setSession] = useState(null);
@@ -110,6 +111,7 @@ function App() {
     // To sign in cosmos, you need to convert hex address to bech32 address
     setAddress(hex2Bech32(addresses?.[0]));
     setSession(session);
+    console.log({session})
   }, [onChangeNetwork]);
 
   const connect = useCallback(async (topic) => {
@@ -144,11 +146,14 @@ function App() {
 
   }, [client, network, updateSession]);
 
-  // TODO: implement
-  const disconnect = useCallback(() => {
-
-  }, []);
-  
+  const disconnect = useCallback(async (e) => {
+    await client.disconnect({
+      topic: session.topic,
+      reason: '',
+    });
+    setAddress(null);
+    setSession(null);
+  }, [client, session?.topic]);
 
   useEffect(() => {
     (async () => {
@@ -196,6 +201,7 @@ function App() {
 
 
   const onTransfer = useCallback(async ({address: recipient, amount}) => {
+    setLoading(true);
     const { api, chainId } = network;
     const { topic } = session;
     const {account_number: accountNumber, sequence} = await getAccountNumberAndSequence(address, api);
@@ -230,18 +236,23 @@ function App() {
       memo: "From demo dapp", 
       signerData
     };
-    
-    const aminoResponse = await client.request({
-      prompt: true,
-      topic,
-      chainId: `astra:${NETWORK_PREFIX}${network.key}`,
-      request: {
-        method: 'sign',
-        params,
-      },
-    });
-    
-    return getTxRaw(aminoResponse);
+    try {
+      const aminoResponse = await client.request({
+        prompt: true,
+        topic,
+        chainId: `astra:${NETWORK_PREFIX}${network.key}`,
+        request: {
+          method: 'sign',
+          params,
+        },
+      });
+      console.log({aminoResponse});
+      message.success({content: 'Request approved!'})
+    } catch(e) {
+      message.error({content: e?.message})
+    }
+
+    setLoading(false);
   }, [address, client, network, session]);
   
   return (
@@ -253,7 +264,7 @@ function App() {
       </div>
       {
         !connected && <>
-          <div style={{width: 300, margin: 'auto'}}>
+          <Card style={{width: 300, margin: 'auto'}}>
             <Form.Item label={"Select network"}>
               <Select 
                 placeholder="Select network"
@@ -268,24 +279,33 @@ function App() {
             <div className='text-center'>
               <Button disabled={!client} onClick={() => connect()} type="primary">{client ? 'Connect to wallet' : 'Initilizing connection'}</Button>
             </div>
-          </div>
+          </Card>
         </>
       }
       {
         connected && <>
           <div style={{width: 300, margin: 'auto'}}>
+          <Card>
             <Form.Item label="Selected network">
               <Input value={network?.name} readOnly />
             </Form.Item>
             <Form.Item label="Connected address">
-              <Input readOnly value={address} />
+              <Input.Group style={{ display: 'flex' }} compact>
+                <Input readOnly value={address}/>
+                <Button type="primary" onClick={disconnect}>Disconnect</Button>
+              </Input.Group>
             </Form.Item>
-
-            <TransferForm onSubmit={onTransfer} />
             
+          </Card>
+
+          {connected && <div style={{marginTop: 30  }}>
+            <TransferForm loading={loading} onSubmit={onTransfer} />
+            </div>
+          }
           </div>
         </>
       }
+
 
     </div>
   );

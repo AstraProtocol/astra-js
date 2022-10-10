@@ -26,6 +26,7 @@ export function encodePubkey(pubkey) {
 }
 
 export const getTxRaw = aminoResponse => {
+  console.log({aminoResponse})
   const {signature, signed} = aminoResponse;
   const aminoTypes = new AminoTypes();
 
@@ -42,12 +43,13 @@ export const getTxRaw = aminoResponse => {
     ['/cosmos.bank.v1beta1.MsgSend', MsgSend]
   ]);
   const signedTxBodyBytes = registry.encode(signedTxBodyEncodeObject)
-  const signedGasLimit = math_1.Int53.fromString(signed.fee.gas).toNumber()
-  const signedSequence = math_1.Int53.fromString(signed.sequence).toNumber()
+  const signedGasLimit = signed.fee.gas;
+  const signedSequence = Number(signed.sequence);
   const pubkey = encodePubkey(signature.pub_key);
   
   // const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
   const signMode = signing_1.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
+  console.log([{ pubkey, sequence: signedSequence }], signed.fee.amount, signedGasLimit, signMode)
   const signedAuthInfoBytes = proto_signing_1.makeAuthInfoBytes([{ pubkey, sequence: signedSequence }], signed.fee.amount, signedGasLimit, signMode)
   const txRaw = tx_5.TxRaw.fromPartial({
     bodyBytes: signedTxBodyBytes,

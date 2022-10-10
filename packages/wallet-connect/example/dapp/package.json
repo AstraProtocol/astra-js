@@ -7,7 +7,7 @@
     "@cosmjs/amino": "^0.29.0",
     "@cosmjs/encoding": "^0.29.0",
     "@cosmjs/math": "^0.29.0",
-    "@cosmjs/proto-signing": "^0.29.0",
+    "@cosmjs/proto-signing": "^0.28.0",
     "@cosmjs/utils": "^0.29.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@svgr/webpack": "^5.5.0",
