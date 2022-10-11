@@ -1,0 +1,36 @@
+.main {
+  padding: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+.logo img {
+  width: 64px;
+}
+.logo span {
+  font-weight: bold;
+  font-size: 24px;
+  color: #3b99fc;
+}
+.text-center {
+  text-align: center;
+}
+.mb-16 {
+  margin-bottom: 16px;
+}
+.flex {
+  display: flex;
+}
+.flex-column {
+  flex-direction: column;
+}
+.flex-row {
+  flex-direction: row;
+}
+.items-center {
+  align-items: center;
+}
