@@ -66,19 +66,21 @@ export class AstraWalletConnector extends AbstractConnector {
     return connector;
   }
 
-  async setup() {
+  async setup({
+    metadata: {
+      name,
+      icon,
+      location
+    }
+  }) {
     try {
       await this.myModule({
         method: 'eth_setup',
-        params: [
-          this.provider.chainId,
-          this.provider.url,
-          {
-            name: 'Astra Defi',
-            icon: 'https://defi.astranaut.network/images/astra.svg',
-            location: 'https://defi.astranaut.network',
-          },
-        ],
+        params: [this.provider.chainId, this.provider.url, {
+          name,
+          icon,
+          location,
+        }]
       });
       this.account = await this.myModule({ method: 'eth_getAddress' });
       this.setupSuccess = true;
