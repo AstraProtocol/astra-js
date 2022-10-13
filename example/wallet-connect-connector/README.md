@@ -1,4 +1,4 @@
-# Demo use WalletConnect to connect dApp to Astra Wallet
+# Demo use WalletConnect to connect dApp to Astra Wallet Connector
 
 ## Available Scripts
 
