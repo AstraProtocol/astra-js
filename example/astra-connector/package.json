@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@astra-sdk/connector": "^1.1.3",
+    "@astra-sdk/connector": "^1.1.5",
     "@astra-sdk/walletconnect-connector": "^1.0.2",
     "@cosmjs/amino": "^0.29.0",
     "@cosmjs/encoding": "^0.29.0",

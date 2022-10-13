@@ -9,3 +9,5 @@ dist
 .npmrc
 
 packages/**/lib
+
+.DS_Store

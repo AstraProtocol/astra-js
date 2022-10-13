@@ -5,7 +5,7 @@ import { AstraConnector  } from './mobile';
 export class AstraWalletConnector  {
   constructor(){}
 
-  static async create({ chainId, url }) {
+  static async create({ chainId, url, metadata }) {
     try {
       const context = await checkContext(window);
       if(context.isMy) {
@@ -13,7 +13,9 @@ export class AstraWalletConnector  {
           url,
           chainId,
         });
-        await connector.setup();
+        await connector.setup({
+          metadata
+        });
         return connector;
       }
       if(context.isAstra) {
