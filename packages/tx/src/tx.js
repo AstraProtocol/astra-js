@@ -36,7 +36,7 @@ export const sendTx = async (axiosInstance, tx) => {
   const txHash = Buffer.from(txResponse.txhash, 'hex');
   const txHashStr = R.toUpper(Buffer.from(txHash).toString('hex'));
   const logs = R.propOr([], 'logs', txResponse);
-  return R.mergeRight({ txHash: txHashStr, logs }, await fetchTx(axiosInstance, txHashStr, 5));
+  return R.mergeRight({ txHash: txHashStr, logs }, await fetchTx(axiosInstance, txHashStr, 10));
 };
 
 export const makeTx = async (axiosInstance, account, chain, tx) => {
