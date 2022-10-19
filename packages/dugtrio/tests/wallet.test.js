@@ -7,7 +7,7 @@ const storage = storageGenerator('data');
 const chainInfo = {
   name: 'Testnest',
   key: 'testnest',
-  chainId: 'astra_11115-1',
+  chainId: 'astra_11115-2',
   lcdUrl: 'https://api.astranaut.dev',
   rpcUrl: 'https://rpc.astranaut.dev',
   bech32Prefix: 'astra',

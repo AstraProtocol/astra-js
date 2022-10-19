@@ -15,7 +15,7 @@ const recipient ="astra16aqjlefv8jl5vva6507m6w4nsh72nsv55kqz8m";
 const chainInfo = {
     name: 'Testnet',
     key: 'Testnet',
-    chainId: 'astra_11115-1',
+    chainId: 'astra_11115-2',
     lcdUrl: 'https://api.astranaut.dev/',
     rpcUrl: 'https://rpc.astranaut.dev',
     bech32Prefix: 'astra',

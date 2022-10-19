@@ -17,14 +17,14 @@ const NETWORKS = [
     key: 'testnet',
     rpc: 'https://rpc.astranaut.dev',
     api: 'https://api.astranaut.dev',
-    chainId: 'astra_11115-1'
+    chainId: 'astra_11115-2'
   },
   {
     name: 'Mainnet',
     key: 'mainnet',
     rpc: 'https://rpc.astranaut.dev',
     api: 'https://api.astranaut.dev',
-    chainId: 'astra_11115-1'
+    chainId: 'astra_11115-2'
   }
 ];
 const NETWORK_PREFIX = 'astra-';

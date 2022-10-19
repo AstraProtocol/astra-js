@@ -1,6 +1,6 @@
 import './App.css';
 import {
-  Button, Card, Form, Input, Select
+  Button, Card, Form, Input, message
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import _ from 'lodash';
@@ -55,6 +55,7 @@ function App() {
         setConnected(true);
       } catch(e) {
         console.log(e)
+        message.error(e.message)
       }
       
     })()
@@ -72,7 +73,6 @@ function App() {
     };
 
 
-
     const provider = await connector.getProvider();
     
     provider.sendAsync({
@@ -83,32 +83,16 @@ function App() {
     }, (error, result) => {
       setLoading(false);
       console.log({error, result});
+      alert(error)
     });
   }, [connector]);
   
   return (
     <div className="main">
       <div className='logo'>
-        <img src="/walletconnect-logo.svg" alt="wallet connect" />
-        <span>WalletConnect</span>
+        <img src="/astra-logo.svg" alt="wallet connect" />
+        <span>Astra Connect</span>
       </div>
-      {
-        !connected && <>
-          <Card style={{width: 300, margin: 'auto'}}>
-            <Form.Item label={"Select network"}>
-              <Select 
-                placeholder="Select network"
-                value={network}
-                onChange={onChangeNetwork}
-              >
-                {
-                  NETWORKS.map(n => <Select.Option value={n.key}>{n.name}</Select.Option>)
-                }
-              </Select>
-            </Form.Item>
-          </Card>
-        </>
-      }
       {
         connected && <>
           <div style={{width: 300, margin: 'auto'}}>

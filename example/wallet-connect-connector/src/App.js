@@ -81,47 +81,6 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      // const client = await SignClient.init({
-      //   relayUrl: 'ws://' + RELAY_URL,
-      //   metadata: {
-      //     name: 'DEMO DAPP',
-      //     description: 'Demo to connect via Wallet Connect',
-      //     url: window.location.origin,
-      //     icons: [
-      //       `${window.location.origin}/logo192.png`
-      //     ],
-      //   },
-      // });
-      
-      // // Restore current session
-      // if (client.session.length > 0) {
-      //   const lastKeyIndex = client.session.keys.length - 1;
-      //   const session = client.session.get(client.session.keys[lastKeyIndex]);
-      //   updateSession(session);
-      // }
-      
-      // // Add listeners for desired SignClient events
-      // client.on("session_event", (args) => {
-      //   // Handle session events, such as "chainChanged", "accountsChanged", etc.
-      // });
-      
-      // client.on("session_update", ({ topic, params }) => {
-      //   const { namespaces } = params;
-      //   const _session = client.session.get(topic);
-      //   // Overwrite the `namespaces` of the existing session with the incoming one.
-      //   const updatedSession = { ..._session, namespaces };
-      //   // Integrate the updated session state into your dapp state.
-      //   // onSessionUpdate(updatedSession);
-      // });
-      
-      // client.on("session_delete", () => {
-      //   // Session was deleted -> reset the dapp state, clean up from user session, etc.
-      // });
-      
-      // setClient(client);
-
-
-
       const walletconnector = new WalletConnectConnector({
         url: network.rpc,
         chainId: network.chainId,
