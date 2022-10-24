@@ -6,7 +6,9 @@ import { mergeLeft } from 'ramda';
 import { KEY as STORAGE_KEY } from './KeyValueStorage';
 
 const _sign = (accountFromSigner, messages, fee, memo, { accountNumber, sequence, chainId }) => {
+  console.log(0, fee)
   const signDoc = makeSignDoc(messages, fee, chainId, memo, accountNumber, sequence);
+  console.log(1, signDoc)
   return sign(accountFromSigner, signDoc);
 };
 
