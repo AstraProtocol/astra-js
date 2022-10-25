@@ -441,10 +441,6 @@ const createProvider = (configs) => {
     return null;
   };
 
-  const testGrant = () => {
-
-  };
-
   return {
     load,
     generateSeed,
@@ -492,7 +488,6 @@ const createProvider = (configs) => {
     simulateReDelegate,
     simulateWithdrawDelegatorReward,
     simulateUnDelegate,
-    testGrant,
   };
 };
 export const validateMnemonic = (mnemonic) => {
