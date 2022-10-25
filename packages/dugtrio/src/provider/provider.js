@@ -11,6 +11,7 @@ import {
   mapObjIndexed,
   mergeLeft,
   mergeRight,
+  flatten
 } from 'ramda';
 import { EthSecp256k1HdWallet } from '@astra/wallet';
 import { Bip39, Random, Slip10RawIndex, EnglishMnemonic } from '@cosmjs/crypto';
@@ -28,6 +29,7 @@ import {
 } from '@astra/tx';
 import * as SignClient from '../SignClient';
 import { Dec } from '@keplr-wallet/unit';
+import createContract from '../contract';
 
 export const TxTypes = {
   SEND: 'send',
@@ -49,6 +51,7 @@ const R = {
   mapObjIndexed,
   mergeLeft,
   mergeRight,
+  flatten,
 };
 
 const hdPath = [
@@ -74,8 +77,12 @@ export const generateSeed = (length = 12) => {
 
 const createProvider = (configs) => {
   const { chainInfo, RNG, bip44HDPath, kdf, storage, axios, storageGenerator } = configs;
-
+  const axiosInstance = axios.create({ baseURL: chainInfo.lcdUrl });
   const self = {
+    erc20Tokens: chainInfo.erc20Tokens.map(config => ({
+      ...config,
+      contract: createContract(chainInfo.rpcUrl, config.contractAddress, axiosInstance)
+    })),
     stream: miniStream(),
     RNG,
     bip44HDPath: bip44HDPathToPath(_bip44HDPath(bip44HDPath)),
@@ -87,7 +94,7 @@ const createProvider = (configs) => {
     password: null,
     status: KEYRING_STATUSES.NOTLOADED,
     chainInfo,
-    axiosInstance: axios.create({ baseURL: chainInfo.lcdUrl }),
+    axiosInstance,
     balances: {},
     signClient: null,
     gasConfig: {},
@@ -333,6 +340,27 @@ const createProvider = (configs) => {
   };
 
   const fetchBalances = async () => {
+    const balances = await Promise.all([
+      fetchAsaBalances(),
+      fetchErc20TokenBalances(),
+    ])
+    self.balances = R.flatten(balances);
+    self.stream.invoke('balances', self.balances);
+    return self.balances;
+  };
+
+  const fetchErc20TokenBalances = async () => {
+    return Promise.all(self.erc20Tokens.map(async ({coinDecimals, coinMinimalDenom, contract}) => {
+      const amount = await contract.balanceOf(self.account.ethAddress);
+      return {
+        decimal: coinDecimals,
+        denom: coinMinimalDenom,
+        amount: amount.toString()
+      }
+    }))
+  };
+
+  const fetchAsaBalances = async () => {
     if (!self.address) {
       self.balances = [];
       self.stream.invoke('balances', self.balances);
@@ -340,10 +368,8 @@ const createProvider = (configs) => {
     }
     const balances = self
       .axiosInstance(`cosmos/bank/v1beta1/balances/${self.address}`)
-      .then(R.propOr([], 'data'))
+      .then(R.pathOr([], ['data', 'balances']))
       .catch(R.always([]));
-    self.balances = balances;
-    self.stream.invoke('balances', self.balances);
     return balances;
   };
   const load = async () => {
