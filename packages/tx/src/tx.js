@@ -50,12 +50,13 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
   };
 
   const gasUsed = await simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence))
+
   const stdFee = {
     amount: [{
       amount: tx.fee,
       denom: chain.denom
     }],
-    gas: `${Math.floor(gasUsed * ( tx.gasAdjustment || 1.3 ))}`
+    gas: `${Math.floor((gasUsed || chain.gasLimit) * ( tx.gasAdjustment || 1.3 ))}`
   }
   const txRawBytes = signAmino(
     account,

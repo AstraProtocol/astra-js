@@ -12,11 +12,11 @@ const chainInfo = {
   rpcUrl: 'https://rpc.astranaut.dev',
   bech32Prefix: 'astra',
   gasLimit: '200000',
-  gasPrice: '0.001aastra',
-  // feeAmount: '1000000000000000',
+  gasPrice: '1000000000aastra',
   decimals: '18',
   coinType: '60',
   denom: 'aastra',
+  erc20Tokens: []
 };
 function RNG() {
   var privateKey = new Uint8Array(32);
@@ -27,7 +27,7 @@ function RNG() {
 describe('Wallet', function () {
   let provider;
   beforeEach(async function () {
-    provider = createProvider({ RNG, storage, chainInfo, axios });
+    provider = createProvider({ RNG, storage, chainInfo, axios, storageGenerator });
     await provider.createMnemonicKeyStore(
       'saddle click spawn install mutual visa usage eyebrow awesome inherit rifle moon giraffe deposit reduce east gossip ice salute hill fire require knife traffic',
       '123456'
