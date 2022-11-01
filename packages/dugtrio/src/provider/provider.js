@@ -1,4 +1,4 @@
-import { miniStream } from '../utils';
+import { miniStream, numberToHex } from '../utils';
 import {
   propOr,
   always,
@@ -30,6 +30,11 @@ import {
 import * as SignClient from '../SignClient';
 import { Dec } from '@keplr-wallet/unit';
 import createContract from '../contract';
+
+import { Web3Provider } from "@ethersproject/providers"
+import createWeb3Provider from '../contract/http-provider'
+
+
 
 export const TxTypes = {
   SEND: 'send',
@@ -78,11 +83,13 @@ export const generateSeed = (length = 12) => {
 const createProvider = (configs) => {
   const { chainInfo, RNG, bip44HDPath, kdf, storage, axios, storageGenerator } = configs;
   const axiosInstance = axios.create({ baseURL: chainInfo.lcdUrl });
+  const httpProvider = createWeb3Provider(chainInfo.rpcUrl, axiosInstance);
   const self = {
     erc20Tokens: chainInfo.erc20Tokens.map(config => ({
       ...config,
       contract: createContract(chainInfo.rpcUrl, config.contractAddress, axiosInstance)
     })),
+    etherProvider: new Web3Provider(httpProvider),
     stream: miniStream(),
     RNG,
     bip44HDPath: bip44HDPathToPath(_bip44HDPath(bip44HDPath)),
@@ -441,9 +448,36 @@ const createProvider = (configs) => {
     return null;
   };
 
+  const _sendEvm = async (recipient, amount) => {
+    const decimals = self.chainInfo.decimals;
+    const gasUsed = await self.etherProvider.estimateGas({
+      from: self.account.ethAddress,
+      to: recipient,
+      value: numberToHex(amount, decimals),
+    });
+    const gasPrice = await self.etherProvider.getGasPrice();
+    console.log(gasPrice.toString())
+    const txData = {
+      chainId: self.chainInfo.evmChainId,
+      from: self.account.ethAddress,
+      to: recipient,
+      value: numberToHex(amount, decimals),
+      nonce: await self.etherProvider.getTransactionCount(self.account.ethAddress),
+      gasLimit: gasUsed.toHexString(),
+      gasPrice: numberToHex(1000000000),
+    }
+    
+
+    // sign
+    const signedTx = signEthTransaction(self.account, txData);
+
+    return self.etherProvider.sendTransaction(signedTx);
+  }
+
   return {
     load,
     generateSeed,
+    sendEvm: _sendEvm,
     send: _send,
     simulateSend: _simulateSend,
     feeSimulator,

@@ -1,5 +1,13 @@
 import { map, reject, compose, apply, applyTo, uniq, equals } from 'ramda';
+import {BigNumber} from '@ethersproject/bignumber';
+import {Dec, Int} from '@keplr-wallet/unit';
+
 const R = { compose, map, reject, apply, applyTo, uniq, equals };
+
+export const numberToHex = (value, decimals = 0) => {
+  const dValue = new Dec(String(value)).mul((new Dec('10')).pow(new Int(decimals)));
+  return BigNumber.from(dValue.toString(0)).toHexString();
+};
 
 export const miniStream = () => {
   const self = {

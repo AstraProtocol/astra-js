@@ -8,6 +8,7 @@ const chainInfo = {
   name: 'Testnest',
   key: 'testnest',
   chainId: 'astra_11115-2',
+  evmChainId: 11115,
   lcdUrl: 'https://api.astranaut.dev',
   rpcUrl: 'https://rpc.astranaut.dev',
   bech32Prefix: 'astra',
@@ -50,8 +51,8 @@ describe('Wallet', function () {
     //   expect(tx).toHaveProperty('tx');
     // });
     test('send decimal number', async function () {
-      const tx = await provider.transfer(
-        'astra19u6ft0g0zldkdewd8t76s2tftzpezly7gx7x7h',
+      const tx = await provider.sendEvm(
+        '0x01a42dD5c8Ccd809AF27F1cD045950a8C8a1f619',
         1.1,
         'Unit test by Duy Anh'
       );
