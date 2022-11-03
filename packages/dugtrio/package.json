@@ -1,6 +1,6 @@
 {
   "name": "@astra-sdk/dugtrio",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "module": "dist/index.js",
   "main": "dist/index.js",
   "license": "MIT",
@@ -43,8 +43,8 @@
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@keplr-wallet/unit": "^0.11.7",
-    "@walletconnect/sign-client": "2.0.0-rc.3",
-    "@walletconnect/utils": "2.0.0-rc.3",
+    "@walletconnect/sign-client": "2.1.0",
+    "@walletconnect/utils": "2.1.0",
     "assert": "^2.0.0",
     "better-sqlite3": "^7.5.3",
     "buffer": "^6.0.3",
