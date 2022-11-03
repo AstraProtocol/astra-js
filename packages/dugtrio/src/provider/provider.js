@@ -456,8 +456,11 @@ const createProvider = (configs) => {
       value: numberToHex(amount, decimals),
     });
     const gasPrice = await self.etherProvider.getGasPrice();
-    console.log(gasPrice.toString())
+    const feeData = await self.etherProvider.getFeeData();
+
+    console.log({gasUsed: gasUsed.toString(), feeData}, gasPrice.toString())
     const txData = {
+      // type: 2,
       chainId: self.chainInfo.evmChainId,
       from: self.account.ethAddress,
       to: recipient,
@@ -465,6 +468,8 @@ const createProvider = (configs) => {
       nonce: await self.etherProvider.getTransactionCount(self.account.ethAddress),
       gasLimit: gasUsed.toHexString(),
       gasPrice: numberToHex(1000000000),
+      // maxPriorityFeePerGas: feeData["maxPriorityFeePerGas"].toHexString(), // Recommended maxPriorityFeePerGas
+      // maxFeePerGas: feeData["maxFeePerGas"].toHexString(), // Recommended maxFeePerGas
     }
     
 
