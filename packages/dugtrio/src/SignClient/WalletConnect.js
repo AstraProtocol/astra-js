@@ -76,15 +76,31 @@ export const init = async (signClientOptions, stream) => {
     return self.removeSessionDeleteCallback;
   }
 
-  function disconnect({ topic, reason }) {
+  async function disconnect({ topic, reason }) {
     try {
       return self.client.disconnect({ topic, reason });
     } catch(e) {
       // try to remove 
-      self.client.session.delete(topic, getSdkError("USER_DISCONNECTED"));
-      self.client.core.crypto.deleteSymKey(topic);
-      self.client.expirer.del(topic);
+      try { 
+        self.client.session.delete(topic, getSdkError("USER_DISCONNECTED"));
+      } catch(e) {
+        console.log('delete session', e)
+      }
+
+      try { 
+        self.client.core.crypto.deleteSymKey(topic);
+      } catch(e) {
+        console.log('delete SymKey', e)
+      }
+
+      try { 
+        self.client.expirer.del(topic);
+      } catch(e) {
+        console.log('delete expirer', e)
+      }
+
       console.log('disconnect error', e);
+      return null;
     }
   }
 
