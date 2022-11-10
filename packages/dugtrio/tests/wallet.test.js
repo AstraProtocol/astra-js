@@ -29,7 +29,7 @@ describe('Wallet', function () {
   beforeEach(async function () {
     provider = createProvider({ RNG, storage, chainInfo, axios, storageGenerator });
     await provider.createMnemonicKeyStore(
-      'saddle click spawn install mutual visa usage eyebrow awesome inherit rifle moon giraffe deposit reduce east gossip ice salute hill fire require knife traffic',
+      'hotel comfort spatial rely original smoke label card any fish grace surprise',
       '123456'
     );
     await provider.unlockNewKeystore();
@@ -50,10 +50,10 @@ describe('Wallet', function () {
     //   expect(tx).toHaveProperty('tx');
     // });
     test('send decimal number', async function () {
-      const tx = await provider.transfer(
-        'astra19u6ft0g0zldkdewd8t76s2tftzpezly7gx7x7h',
-        1.1,
-        'Unit test by Duy Anh'
+      const tx = await provider.transferTicket(
+        '0xd1ffcF954830A4A4200b1505bB092c012AA1C034',
+        3,
+        '0x54e7CCa2257d7964cB3faF345a6fbA5b0760301b'
       );
       console.log({tx})
       expect(tx).toHaveProperty('txHash');

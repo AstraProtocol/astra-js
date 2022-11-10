@@ -2,7 +2,8 @@ function createProvider(rpc, axiosInstance) {
   const provider = {
     send(payload, callback) {
       axiosInstance.post(rpc, payload)
-        .then(({ data }) => {
+      .then(({ data }) => {
+          console.log(payload, data)
           callback(null, data);
         })
         .catch(error => {
@@ -18,4 +19,5 @@ function createProvider(rpc, axiosInstance) {
   };
   return provider;
 }
-export default createProvider;
+module.exports = createProvider;
+// export default createProvider;
