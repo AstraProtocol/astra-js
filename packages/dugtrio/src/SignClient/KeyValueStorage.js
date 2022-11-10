@@ -8,16 +8,17 @@ function parseEntry(entry) {
 
 export const KEY = 'wc';
 
-const AsyncStorage = {
-  getData() {
+export const AsyncStorage = {
+  getItem(key) {
     return new Promise((resolve, reject) => {
       my.getStorage({
-        key: KEY,
+        key: key,
         success: function (res) {
           try {
-            resolve(safeJsonParse(res.data));
+            resolve(res.data);
+            // eslint-disable-next-line no-empty
           } catch {
-            resolve({});
+            reject(null)
           }
         },
         fail: function (res) {
@@ -26,31 +27,12 @@ const AsyncStorage = {
       });
     });
   },
-  getItem(key) {
-    return new Promise((resolve, reject) => {
-      my.getStorage({
-        key: KEY,
-        success: function (res) {
-          let data = {};
-          try {
-            data = safeJsonParse(res.data);
-            // eslint-disable-next-line no-empty
-          } catch {}
-          resolve(data?.[key] || null);
-        },
-        fail: function (res) {
-          reject(res.errorMessage);
-        },
-      });
-    });
-  },
   setItem(key, value) {
+    console.log('setItem', value, safeJsonStringify(value))
     return new Promise(async (resolve, reject) => {
-      const data = (await this.getData()) || {};
-      data[key] = value;
       my.setStorage({
-        key: KEY,
-        data: safeJsonStringify(data),
+        key,
+        data: safeJsonStringify(value),
         success: function () {
           resolve();
         },
@@ -62,11 +44,8 @@ const AsyncStorage = {
   },
   removeItem(key) {
     return new Promise(async (resolve, reject) => {
-      const data = (await this.getData()) || {};
-      delete data[key];
-      my.setStorage({
-        key: KEY,
-        data: safeJsonStringify(data),
+      my.removeStorage({
+        key,
         success: function () {
           resolve();
         },
@@ -78,15 +57,8 @@ const AsyncStorage = {
   },
   clear() {
     return new Promise((resolve, reject) => {
-      my.removeStorage({
-        key: KEY,
-        success: function () {
-          resolve();
-        },
-        fail: function () {
-          reject();
-        },
-      });
+      // not done yet
+      resolve()
     });
   },
   key(n) {
@@ -94,18 +66,14 @@ const AsyncStorage = {
     return n;
   },
   getAllKeys() {
+    // not done yet
     return new Promise(async (resolve) => {
-      const data = (await this.getData()) || {};
-      resolve(Object.keys(data));
+      resolve([]);
     });
   },
-  async multiGet(keys = []) {
-    return new Promise(async (resolve) => {
-      const data = (await this.getData()) || {};
-      resolve(Object.keys(data));
-      const results = keys.map((key) => data[key]);
-      resolve(results);
-    });
+  multiGet(keys = []) {
+    const prs = keys.map(key => this.getItem(key))
+    return Promise.all(prs);
   },
   length: 0,
 };

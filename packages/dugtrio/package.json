@@ -1,6 +1,6 @@
 {
   "name": "@astra-sdk/dugtrio",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "module": "dist/index.js",
   "main": "dist/index.js",
   "license": "MIT",

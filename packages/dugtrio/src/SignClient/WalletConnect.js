@@ -3,7 +3,7 @@ import SignClient from '@walletconnect/sign-client';
 import { getSdkError } from '@walletconnect/utils';
 import { sign, signEthTransaction } from '@astra/tx';
 import { mergeLeft } from 'ramda';
-import { KEY as STORAGE_KEY } from './KeyValueStorage';
+import { AsyncStorage } from './KeyValueStorage';
 
 const _sign = (accountFromSigner, messages, fee, memo, { accountNumber, sequence, chainId }) => {
   const signDoc = makeSignDoc(messages, fee, chainId, memo, accountNumber, sequence);
@@ -77,51 +77,38 @@ export const init = async (signClientOptions, stream) => {
   }
 
   async function disconnect({ topic, reason }) {
-    try {
-      return self.client.disconnect({ topic, reason });
-    } catch(e) {
-      // try to remove 
-      try { 
-        self.client.session.delete(topic, getSdkError("USER_DISCONNECTED"));
-      } catch(e) {
-        console.log('delete session', e)
-      }
-
-      try { 
-        self.client.core.crypto.deleteSymKey(topic);
-      } catch(e) {
-        console.log('delete SymKey', e)
-      }
-
-      try { 
-        self.client.expirer.del(topic);
-      } catch(e) {
-        console.log('delete expirer', e)
-      }
-
-      console.log('disconnect error', e);
-      return null;
-    }
+    return await self.client.disconnect({ topic, reason });
   }
 
   const pair = async ({ uri }) => {
     await self.client.pair({ uri });
   };
 
-  const approveProposal = async (proposal, address) => {
-    const approvePayload = {
-      id: proposal.id,
-      relayProtocol: proposal.params.relays[0].protocol,
-      namespaces: {
-        astra: {
-          accounts: ['astra:astra-testnet:' + address],
-          methods: proposal.params.requiredNamespaces['astra'].methods,
-          events: proposal.params.requiredNamespaces['astra'].events,
-        },
-      },
-    };
-    const { acknowledged } = await self.client.approve(approvePayload);
-    await acknowledged();
+  const approveProposal = (proposal, address, timeout = 5000) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const approvePayload = {
+          id: proposal.id,
+          relayProtocol: proposal.params.relays[0].protocol,
+          namespaces: {
+            astra: {
+              accounts: ['astra:astra-testnet:' + address],
+              methods: proposal.params.requiredNamespaces['astra'].methods,
+              events: proposal.params.requiredNamespaces['astra'].events,
+            },
+          },
+        };
+        const { acknowledged } = await self.client.approve(approvePayload);
+
+        setTimeout(() => {
+          reject(new Error('Timeout'))
+        }, timeout);
+        await acknowledged();
+        resolve();
+      } catch(e) {
+        reject(e)
+      }
+    })
   };
 
   const rejectProposal = async (proposal) => {
@@ -191,12 +178,16 @@ export const init = async (signClientOptions, stream) => {
   };
 
   const clear = () => {
-    // self.client.core.relayer.provider.close();
-    my.removeStorage({
-      key: STORAGE_KEY,
+    return new Promise((resolve, reject) => {
+      my.getStorageInfo({
+        success: async function (res) {
+          const prs = res.keys.map(key => AsyncStorage.removeItem(key));
+          await Promise.all(prs);
+          resolve()
+        },
+        fail: reject
+      });
     });
-    // self.stream.invoke('sessionProposal', []);
-    // self.stream.invoke('sessionRequest', []);
   };
 
   return {
