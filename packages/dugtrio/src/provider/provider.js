@@ -30,6 +30,10 @@ import {
 import * as SignClient from '../SignClient';
 import { Dec } from '@keplr-wallet/unit';
 import createContract from '../contract';
+import createHttpProvider from '../contract/http-provider';
+import { TicketBox__factory } from '../ticketbox/factories'
+import { Web3Provider } from "@ethersproject/providers"
+import { transfer } from '../nft';
 
 import { Web3Provider } from "@ethersproject/providers"
 import createWeb3Provider from '../contract/http-provider'
@@ -90,6 +94,7 @@ const createProvider = (configs) => {
       contract: createContract(chainInfo.rpcUrl, config.contractAddress, axiosInstance)
     })),
     etherProvider: new Web3Provider(httpProvider),
+    web3Provider: new Web3Provider(createHttpProvider(chainInfo.rpcUrl, axiosInstance)),
     stream: miniStream(),
     RNG,
     bip44HDPath: bip44HDPathToPath(_bip44HDPath(bip44HDPath)),
@@ -479,6 +484,16 @@ const createProvider = (configs) => {
     return self.etherProvider.sendTransaction(signedTx);
   }
 
+  const ticketList = (ticketAddress) => {
+    // const { ethAddress } = self.account;
+    // const ticketNft = TicketBox__factory.connect(ticketAddress, self.web3Provider);
+    // return ticketNft.getTokenIdsOfOwner(ethAddress);
+  }
+
+  const transferTicket = (ticketAddress, ticketId, toAddress) => {
+    return transfer(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
+  }
+
   return {
     load,
     generateSeed,
@@ -527,6 +542,8 @@ const createProvider = (configs) => {
     simulateReDelegate,
     simulateWithdrawDelegatorReward,
     simulateUnDelegate,
+    ticketList,
+    transferTicket,
   };
 };
 export const validateMnemonic = (mnemonic) => {

@@ -3,7 +3,6 @@ function createWeb3Provider(rpc, axiosInstance) {
     send(payload, callback) {
       axiosInstance.post(rpc, payload)
         .then(({ data }) => {
-          console.log({payload, data})
           callback(null, data);
         })
         .catch(error => {
@@ -19,4 +18,5 @@ function createWeb3Provider(rpc, axiosInstance) {
   };
   return provider;
 }
+
 export default createWeb3Provider;
