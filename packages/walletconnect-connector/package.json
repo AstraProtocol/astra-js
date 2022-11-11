@@ -1,6 +1,6 @@
 {
   "name": "@astra-sdk/walletconnect-connector",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "module": "dist/index.js",
   "main": "dist/index.js",
   "license": "MIT",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@web3-react/abstract-connector": "^6.0.7",
-    "@astra-sdk/wallet-connect": "^1.0.2"
+    "@astra-sdk/wallet-connect": "^1.0.4"
   },
   "devDependencies": {
     "crypto-browserify": "^3.12.0",
