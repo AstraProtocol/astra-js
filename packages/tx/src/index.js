@@ -1,4 +1,5 @@
 export { default as send } from './send';
+export { default as sendEvm } from './sendEvm';
 export { default as staking } from './staking';
 export * from './tx';
 export * from './sign';

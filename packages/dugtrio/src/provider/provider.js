@@ -1,4 +1,4 @@
-import { miniStream, numberToHex } from '../utils';
+import { miniStream } from '../utils';
 import {
   propOr,
   always,
@@ -22,6 +22,7 @@ import {
   fetchTx,
   fetchTxs,
   send,
+  sendEvm,
   staking,
   signEthTransaction,
   detectAddressType,
@@ -29,16 +30,11 @@ import {
 } from '@astra/tx';
 import * as SignClient from '../SignClient';
 import { Dec } from '@keplr-wallet/unit';
-import createContract from '../contract';
-import createHttpProvider from '../contract/http-provider';
-import { TicketBox__factory } from '../ticketbox/factories'
-import { Web3Provider } from "@ethersproject/providers"
-import { transfer } from '../nft';
-
-import { Web3Provider } from "@ethersproject/providers"
-import createWeb3Provider from '../contract/http-provider'
-
-
+import {abis, createContract} from '../contracts';
+import createHttpProvider from '../contracts/http-provider';
+import { Web3Provider } from "@ethersproject/providers"// import { transfer } from '../nft';
+import { Interface } from '@ethersproject/abi';
+import abiDecoder from 'abi-decoder';
 
 export const TxTypes = {
   SEND: 'send',
@@ -87,14 +83,16 @@ export const generateSeed = (length = 12) => {
 const createProvider = (configs) => {
   const { chainInfo, RNG, bip44HDPath, kdf, storage, axios, storageGenerator } = configs;
   const axiosInstance = axios.create({ baseURL: chainInfo.lcdUrl });
-  const httpProvider = createWeb3Provider(chainInfo.rpcUrl, axiosInstance);
+  const httpProvider = createHttpProvider(chainInfo.rpcUrl, axiosInstance);
   const self = {
-    erc20Tokens: chainInfo.erc20Tokens.map(config => ({
-      ...config,
-      contract: createContract(chainInfo.rpcUrl, config.contractAddress, axiosInstance)
-    })),
-    etherProvider: new Web3Provider(httpProvider),
-    web3Provider: new Web3Provider(createHttpProvider(chainInfo.rpcUrl, axiosInstance)),
+    erc20Tokens: chainInfo.erc20Tokens.map(config => {
+      const _interface = new Interface(config.abi);
+      return {
+        ...config,
+        contract: createContract(config.contractAddress, _interface, httpProvider)
+      }
+    }),
+    web3Provider: new Web3Provider(httpProvider),
     stream: miniStream(),
     RNG,
     bip44HDPath: bip44HDPathToPath(_bip44HDPath(bip44HDPath)),
@@ -454,34 +452,19 @@ const createProvider = (configs) => {
   };
 
   const _sendEvm = async (recipient, amount) => {
-    const decimals = self.chainInfo.decimals;
-    const gasUsed = await self.etherProvider.estimateGas({
-      from: self.account.ethAddress,
-      to: recipient,
-      value: numberToHex(amount, decimals),
-    });
-    const gasPrice = await self.etherProvider.getGasPrice();
-    const feeData = await self.etherProvider.getFeeData();
+    return sendEvm(recipient, amount, self.account, self.web3Provider, self.chainInfo);
+  }
 
-    console.log({gasUsed: gasUsed.toString(), feeData}, gasPrice.toString())
-    const txData = {
-      // type: 2,
-      chainId: self.chainInfo.evmChainId,
-      from: self.account.ethAddress,
-      to: recipient,
-      value: numberToHex(amount, decimals),
-      nonce: await self.etherProvider.getTransactionCount(self.account.ethAddress),
-      gasLimit: gasUsed.toHexString(),
-      gasPrice: numberToHex(1000000000),
-      // maxPriorityFeePerGas: feeData["maxPriorityFeePerGas"].toHexString(), // Recommended maxPriorityFeePerGas
-      // maxFeePerGas: feeData["maxFeePerGas"].toHexString(), // Recommended maxFeePerGas
-    }
-    
+  const _simulateSendEvm = async (recipient, amount) => {
+    return sendEvm.simulate(recipient, amount, self.account, self.web3Provider, self.chainInfo);
+  }
 
-    // sign
-    const signedTx = signEthTransaction(self.account, txData);
+  const decodeEvmTxData = async txHash => { 
+    const tx = await self.web3Provider.getTransaction(txHash);
+    if(!tx || !tx.data) return null;
 
-    return self.etherProvider.sendTransaction(signedTx);
+    Object.values(abis).forEach(abi => abiDecoder.addABI(abi));
+    return abiDecoder.decodeMethod(tx.data);
   }
 
   const ticketList = (ticketAddress) => {
@@ -491,13 +474,16 @@ const createProvider = (configs) => {
   }
 
   const transferTicket = (ticketAddress, ticketId, toAddress) => {
-    return transfer(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
+    // return transfer(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
   }
+
+  
 
   return {
     load,
     generateSeed,
     sendEvm: _sendEvm,
+    simulateSendEvm: _simulateSendEvm,
     send: _send,
     simulateSend: _simulateSend,
     feeSimulator,
@@ -542,6 +528,7 @@ const createProvider = (configs) => {
     simulateReDelegate,
     simulateWithdrawDelegatorReward,
     simulateUnDelegate,
+    decodeEvmTxData,
     ticketList,
     transferTicket,
   };
