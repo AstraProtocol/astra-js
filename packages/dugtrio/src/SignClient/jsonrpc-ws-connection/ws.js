@@ -9,7 +9,12 @@ import {
 } from '@walletconnect/jsonrpc-utils';
 import WS from './tini-socket';
 // const WS = global?.WebSocket;
-
+const sleep = ms => {
+  return new Promise(res => {
+    setTimeout(res, ms)
+  })
+}
+const EVENT_EMITTER_MAX_LISTENERS_DEFAULT = 10;
 export class WsConnection {
   constructor(url) {
     this.url = url;
@@ -45,10 +50,13 @@ export class WsConnection {
     if (typeof this.socket === 'undefined') {
       throw new Error('Connection already closed');
     }
+    this.socket.onclose(() => { console.log('close event do nothing') })
     this.socket.close();
+    // wait to ensure onclose fired
+    await sleep(1000);
     this.onClose();
   }
-  async send(payload) {
+  async send(payload, context) {
     if (typeof this.socket === 'undefined') {
       this.socket = await this.register();
     }
@@ -63,11 +71,20 @@ export class WsConnection {
       throw new Error(`Provided URL is not compatible with WebSocket connection: ${url}`);
     }
     if (this.registering) {
+      const currentMaxListeners = this.events.getMaxListeners();
+      if (
+        this.events.listenerCount('register_error') >= currentMaxListeners ||
+        this.events.listenerCount('open') >= currentMaxListeners
+      ) {
+        this.events.setMaxListeners(currentMaxListeners + 1);
+      }
       return new Promise((resolve, reject) => {
         this.events.once('register_error', (error) => {
+          this.resetMaxListeners();
           reject(error);
         });
         this.events.once('open', () => {
+          this.resetMaxListeners();
           if (typeof this.socket === 'undefined') {
             return reject(new Error('WebSocket connection is missing or invalid'));
           }
@@ -84,23 +101,22 @@ export class WsConnection {
         this.onOpen(socket);
         resolve(socket);
       });
+      socket.onmessage((event) => this.onPayload(event));
+      socket.onclose(() => this.onClose());
+      socket.onerror((event) => {
+        const error = this.parseError(event.error);
+        this.events.emit('error', error);
+      });
       socket.onerror((event) => {
         const error = this.parseError(event.error);
         this.events.emit('register_error', error);
         this.onClose();
         reject(error);
       });
-      // only use when swith ws to tini-socket
-      socket.open();
+      socket.open()
     });
   }
   onOpen(socket) {
-    socket.onmessage((event) => this.onPayload(event));
-    socket.onclose(() => this.onClose());
-    socket.onerror((event) => {
-      const error = this.parseError(event.error);
-      this.events.emit('error', error);
-    });
     this.socket = socket;
     this.registering = false;
     this.events.emit('open');
@@ -128,5 +144,11 @@ export class WsConnection {
       return e;
     }
   }
+  resetMaxListeners() {
+    if (this.events.getMaxListeners() > EVENT_EMITTER_MAX_LISTENERS_DEFAULT) {
+      this.events.setMaxListeners(EVENT_EMITTER_MAX_LISTENERS_DEFAULT);
+    }
+  }
 }
 export default WsConnection;
+//# sourceMappingURL=ws.js.map

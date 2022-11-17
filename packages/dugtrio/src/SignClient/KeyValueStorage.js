@@ -28,7 +28,6 @@ export const AsyncStorage = {
     });
   },
   setItem(key, value) {
-    console.log('setItem', value, safeJsonStringify(value))
     return new Promise(async (resolve, reject) => {
       my.setStorage({
         key,

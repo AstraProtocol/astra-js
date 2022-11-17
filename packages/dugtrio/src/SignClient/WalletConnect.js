@@ -190,6 +190,15 @@ export const init = async (signClientOptions, stream) => {
     });
   };
 
+  const reinit = async () => {
+    try {
+      await self.client.core.relayer.transportClose()
+    } catch(e) {
+      console.log('REINIT', e)
+    }
+    await self.client.core.relayer.init();
+  }
+
   return {
     clear,
     pair,
@@ -202,6 +211,7 @@ export const init = async (signClientOptions, stream) => {
     onSessionProposal,
     onSessionRequest,
     onSessionDelete,
-    destroy
+    destroy,
+    reinit
   };
 };
