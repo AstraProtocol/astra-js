@@ -20,19 +20,23 @@ export const init = async (signClientOptions, stream) => {
     removeSessionDeleteCallback: () => { },
   };
 
-  self.client = await SignClient.init({
-    ...signClientOptions,
-  });
-
   self.stream = stream;
 
-  self.client.on('session_proposal', _onSessionProposal);
-  self.client.on('session_request', _onSessionRequest);
-  self.client.on('session_delete', _onSessionDelete);
-  // TODOs
-  self.client.on('session_ping', (data) => console.log('ping', data));
-  self.client.on('session_event', (data) => console.log('event', data));
-  self.client.on('session_update', (data) => console.log('update', data));
+  async function initClient() {
+    self.client = await SignClient.init({
+      ...signClientOptions,
+    });
+  
+  
+    self.client.on('session_proposal', _onSessionProposal);
+    self.client.on('session_request', _onSessionRequest);
+    self.client.on('session_delete', _onSessionDelete);
+    // TODOs
+    self.client.on('session_ping', (data) => console.log('ping', data));
+    self.client.on('session_event', (data) => console.log('event', data));
+    self.client.on('session_update', (data) => console.log('update', data));
+  }
+  
 
   function destroy() {
     self.destroyed = true;
@@ -190,14 +194,21 @@ export const init = async (signClientOptions, stream) => {
     });
   };
 
-  const reinit = async () => {
+  const transportClose = async () => {
     try {
       await self.client.core.relayer.transportClose()
     } catch(e) {
       console.log('REINIT', e)
     }
-    await self.client.core.relayer.init();
   }
+
+  const reinit = async () => {
+    await transportClose()
+    await initClient()
+  }
+
+
+  await initClient()
 
   return {
     clear,
@@ -212,6 +223,7 @@ export const init = async (signClientOptions, stream) => {
     onSessionRequest,
     onSessionDelete,
     destroy,
-    reinit
+    reinit,
+    transportClose
   };
 };

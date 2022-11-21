@@ -1,111 +1,83 @@
-// To avoid duplicate message listener
-// TODO: Use socket task id
-
-const createMySocketInstance = () => {
-  let self = {};
-  self.onSocketOpen = () => {};
-  self.onSocketMessage = () => {};
-  self.onSocketClose = () => {};
-  self.onSocketError = () => {};
-
-  self.eventsSetup = false;
+class WS {
   
-  function onSocketOpen(callback) {
-    console.log('set onSocketOpen', callback)
-    self.onSocketOpen = callback;
-  };
-
-  function onSocketClose(callback) {
-    console.log('set onSocketClose', callback)
-    self.onSocketClose = callback;
-  };
-  
-  function onSocketError(callback) {
-    console.log('set onSocketError', callback)
-    self.onSocketError = callback;
-  };
-
-  function onSocketMessage(callback) {
-    console.log('set onSocketMessage', callback)
-    self.onSocketMessage = callback;
-  };
-
-  function connectSocket(params) {
-    console.log('CONNECT', params);
-    if(!self.eventsSetup) {
-      my.onSocketOpen((e) => {
-        console.log('WC:OPEN', params);
-        self.onSocketOpen(e);
-      });
-      my.onSocketMessage((e) => {
-        console.log('WC:MESSAGE', params);
-        self.onSocketMessage(e);
-      });
-      my.onSocketClose((e) => {
-        console.log('WC:CLOSE', params);
-        self.onSocketClose(e);
-      });
-      my.onSocketError((e) => {
-        console.log('WC:ERROR', params);
-        self.onSocketError(e);
-      });
-      self.eventsSetup = true;
-    }
-
-    my.connectSocket(params);
-  };
-
-  return {
-    onSocketOpen,
-    onSocketMessage,
-    connectSocket,
-    onSocketClose,
-    onSocketError
-  }
-};
-
-const sc = createMySocketInstance();
-
-export default class WS {
-  constructor(url) {
-    this.closed = false;
+  constructor(url, params, opts) {
     this.url = url;
-  }
-  open() {
-    sc.connectSocket({
-      url: this.url,
-      data: {},
-    });
-  }
-  close() {
-    // Vì lib chưa handle tốt callback socketClose
-    // Tạm thời không đóng socket
-    // sẽ tự đóng khi open socket mới
+    this.params = params;
+    this.opts = opts;
+    this.socketTaskId = new Date().getTime();
 
-    my.closeSocket({
-      success: () => {},
-      fail: () => {},
-      complete: () => {},
+    this.onopen = () => {};
+    this.onclose = () => {};
+    this.onmessage = () => {};
+    this.onerror = () => {};
+
+    this.subscribe();
+
+  }
+  
+  open() {
+    my.connectSocket({
+      socketTaskId: this.socketTaskId,
+      url: this.url
     });
   }
-  onopen(callback) {
-    sc.onSocketOpen(callback)
+
+  isValidEvent(event, name) {
+    console.log(name, event, this.socketTaskId)
+    return event.socketTaskId === this.socketTaskId;
   }
-  onmessage(callback) {
-    sc.onSocketMessage(callback)
+
+  onSocketOpen = (event) => {
+    if(this.isValidEvent(event, 'onSocketOpen')) {
+      this.onopen(event)
+    }
   }
-  onclose(callback) {
-    sc.onSocketClose(callback)
+  onSocketMessage = (event) => {
+    if(this.isValidEvent(event, 'onSocketMessage')) {
+      this.onmessage(event)
+    }
   }
-  onerror(callback) {
-    sc.onSocketError(callback)
+  onSocketError = (event) => {
+    if(this.isValidEvent(event, 'onSocketError')) {
+      this.onerror(event)
+    }
   }
+  onSocketClose = (event) => {
+    if(this.isValidEvent(event, 'onSocketClose')) {
+      this.onclose(event)
+    }
+  }
+
+  subscribe() {
+    my.onSocketTaskOpen(this.onSocketOpen);
+    my.onSocketTaskMessage(this.onSocketMessage);
+    my.onSocketTaskError(this.onSocketError);
+    my.onSocketTaskClose(this.onSocketClose);
+  }
+
+  unsubscribe() {
+    my.offSocketTaskOpen(this.onSocketOpen);
+    my.offSocketTaskMessage(this.onSocketMessage);
+    my.offSocketTaskError(this.onSocketError);
+    my.offSocketTaskClose(this.onSocketClose);
+  }
+
+  close() {
+    my.closeSocket({
+      socketTaskId: this.socketTaskId,
+    });
+    this.unsubscribe();
+  }
+
   send(data) {
     my.sendSocketMessage({
+      socketTaskId: this.socketTaskId,
       data,
       success: () => {},
       fail: () => {},
       complete: () => {},
     });
   }
+
 }
+export default WS;

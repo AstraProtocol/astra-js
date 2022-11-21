@@ -47,13 +47,10 @@ export class WsConnection {
     await this.register(url);
   }
   async close() {
-    if (typeof this.socket === 'undefined') {
-      throw new Error('Connection already closed');
+    if (typeof this.socket === "undefined") {
+      throw new Error("Connection already closed");
     }
-    this.socket.onclose(() => { console.log('close event do nothing') })
     this.socket.close();
-    // wait to ensure onclose fired
-    await sleep(1000);
     this.onClose();
   }
   async send(payload, context) {
@@ -97,26 +94,26 @@ export class WsConnection {
     return new Promise((resolve, reject) => {
       const opts = !isReactNative() ? { rejectUnauthorized: !isLocalhostUrl(url) } : undefined;
       const socket = new WS(url, [], opts);
-      socket.onopen(() => {
+      socket.onopen = () => {
         this.onOpen(socket);
         resolve(socket);
-      });
-      socket.onmessage((event) => this.onPayload(event));
-      socket.onclose(() => this.onClose());
-      socket.onerror((event) => {
-        const error = this.parseError(event.error);
-        this.events.emit('error', error);
-      });
-      socket.onerror((event) => {
-        const error = this.parseError(event.error);
-        this.events.emit('register_error', error);
-        this.onClose();
-        reject(error);
-      });
-      socket.open()
+      };
+      socket.onerror = (event) => {
+          const error = this.parseError(event.error);
+          this.events.emit("register_error", error);
+          this.onClose();
+          reject(error);
+      };
+      socket.open();
     });
   }
   onOpen(socket) {
+    socket.onmessage = (event) => this.onPayload(event);
+    socket.onclose = () => this.onClose();
+    socket.onerror = (event) => {
+        const error = this.parseError(event.error);
+        this.events.emit("error", error);
+    };
     this.socket = socket;
     this.registering = false;
     this.events.emit('open');
