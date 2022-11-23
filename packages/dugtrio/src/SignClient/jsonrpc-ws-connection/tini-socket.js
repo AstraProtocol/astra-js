@@ -23,7 +23,6 @@ class WS {
   }
 
   isValidEvent(event, name) {
-    console.log(name, event, this.socketTaskId)
     return event.socketTaskId === this.socketTaskId;
   }
 

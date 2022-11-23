@@ -3,7 +3,7 @@ import SignClient from '@walletconnect/sign-client';
 import { getSdkError } from '@walletconnect/utils';
 import { sign, signEthTransaction } from '@astra/tx';
 import { mergeLeft } from 'ramda';
-import { AsyncStorage } from './KeyValueStorage';
+// import { AsyncStorage } from './KeyValueStorage';
 
 const _sign = (accountFromSigner, messages, fee, memo, { accountNumber, sequence, chainId }) => {
   const signDoc = makeSignDoc(messages, fee, chainId, memo, accountNumber, sequence);
@@ -181,17 +181,17 @@ export const init = async (signClientOptions, stream) => {
     });
   };
 
-  const clear = () => {
-    return new Promise((resolve, reject) => {
-      my.getStorageInfo({
-        success: async function (res) {
-          const prs = res.keys.map(key => AsyncStorage.removeItem(key));
-          await Promise.all(prs);
-          resolve()
-        },
-        fail: reject
-      });
-    });
+  const clear = async () => {
+    try {
+      const prs = self.client.session.getAll().map(({topic}) => disconnect({topic, reason: getSdkError('USER_DISCONNECTED')}))
+      await Promise.all(prs);
+    } catch(e) {
+      console.log('WC CLEAR ERROR', e)
+    }
+  };
+
+  const extend = async params => {
+    await self.client.extend(params);
   };
 
   const transportClose = async () => {
@@ -224,6 +224,7 @@ export const init = async (signClientOptions, stream) => {
     onSessionDelete,
     destroy,
     reinit,
-    transportClose
+    transportClose,
+    extend
   };
 };
