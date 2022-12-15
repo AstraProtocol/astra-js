@@ -146,33 +146,33 @@ export const init = async (signClientOptions, stream) => {
           result,
         },
       });
-    } else if (method === 'signEth' && typeof txData === 'string') {
-      const result = signEthTransaction(account, txData);
-
-      await self.client.respond({
-        topic,
-        response: {
-          id,
-          jsonrpc: '2.0',
-          result,
-        },
-      });
     } else if (method === 'signEth') {
-      const { chainId, ...txRest } = txData;
-      const result = signEthTransaction(
-        account,
-        mergeLeft({ gasLimit: txRest.gas, chainId }, txRest),
-        chainId
-      );
-
-      await self.client.respond({
-        topic,
-        response: {
-          id,
-          jsonrpc: '2.0',
-          result,
-        },
-      });
+      const { txString, chainId, ...txRest } = txData;
+      if(txString) {
+  
+        await self.client.respond({
+          topic,
+          response: {
+            id,
+            jsonrpc: '2.0',
+            result: signEthTransaction(account, txString)
+          },
+        });
+      } else {
+  
+        await self.client.respond({
+          topic,
+          response: {
+            id,
+            jsonrpc: '2.0',
+            result: signEthTransaction(
+              account,
+              mergeLeft({ gasLimit: txRest.gas, chainId }, txRest),
+              chainId
+            ),
+          },
+        });
+      }
     }
   };
 
