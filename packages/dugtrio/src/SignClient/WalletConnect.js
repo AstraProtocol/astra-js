@@ -15,9 +15,9 @@ export const init = async (signClientOptions, stream) => {
     stream: null,
     client: null,
     destroyed: false,
-    removeSessionProposalCallback: () => { },
-    removeSessionRequestCallback: () => { },
-    removeSessionDeleteCallback: () => { },
+    removeSessionProposalCallback: () => {},
+    removeSessionRequestCallback: () => {},
+    removeSessionDeleteCallback: () => {},
   };
 
   self.stream = stream;
@@ -26,8 +26,7 @@ export const init = async (signClientOptions, stream) => {
     self.client = await SignClient.init({
       ...signClientOptions,
     });
-  
-  
+
     self.client.on('session_proposal', _onSessionProposal);
     self.client.on('session_request', _onSessionRequest);
     self.client.on('session_delete', _onSessionDelete);
@@ -36,13 +35,12 @@ export const init = async (signClientOptions, stream) => {
     self.client.on('session_event', (data) => console.log('event', data));
     self.client.on('session_update', (data) => console.log('update', data));
   }
-  
 
   function destroy() {
     self.destroyed = true;
-    self.removeSessionProposalCallback()
-    self.removeSessionRequestCallback()
-    self.removeSessionDeleteCallback()
+    self.removeSessionProposalCallback();
+    self.removeSessionRequestCallback();
+    self.removeSessionDeleteCallback();
     my.offSocketMessage();
     my.offSocketOpen();
     my.offSocketError();
@@ -50,17 +48,17 @@ export const init = async (signClientOptions, stream) => {
   }
 
   function _onSessionProposal(data) {
-    if(!self.destroyed) {
+    if (!self.destroyed) {
       self.stream.invoke('sessionProposal', data);
     }
   }
   function _onSessionRequest(data) {
-    if(!self.destroyed) {
+    if (!self.destroyed) {
       self.stream.invoke('sessionRequest', data);
     }
   }
   function _onSessionDelete(data) {
-    if(!self.destroyed) {
+    if (!self.destroyed) {
       self.stream.invoke('sessionDelete', data);
     }
   }
@@ -105,14 +103,14 @@ export const init = async (signClientOptions, stream) => {
         const { acknowledged } = await self.client.approve(approvePayload);
 
         setTimeout(() => {
-          reject(new Error('Timeout'))
+          reject(new Error('Timeout'));
         }, timeout);
         await acknowledged();
         resolve();
-      } catch(e) {
-        reject(e)
+      } catch (e) {
+        reject(e);
       }
-    })
+    });
   };
 
   const rejectProposal = async (proposal) => {
@@ -136,10 +134,21 @@ export const init = async (signClientOptions, stream) => {
       },
     } = params;
 
-    if(method === 'sign') {
+    if (method === 'sign') {
       const { messages, fee, memo, signerData } = txData;
       const result = _sign(account, messages, fee, memo, signerData);
-  
+
+      await self.client.respond({
+        topic,
+        response: {
+          id,
+          jsonrpc: '2.0',
+          result,
+        },
+      });
+    } else if (method === 'signEth' && typeof txData === 'string') {
+      const result = signEthTransaction(account, txData);
+
       await self.client.respond({
         topic,
         response: {
@@ -149,13 +158,13 @@ export const init = async (signClientOptions, stream) => {
         },
       });
     } else if (method === 'signEth') {
-      const {chainId, ...txRest} = txData;
+      const { chainId, ...txRest } = txData;
       const result = signEthTransaction(
         account,
         mergeLeft({ gasLimit: txRest.gas, chainId }, txRest),
         chainId
       );
-  
+
       await self.client.respond({
         topic,
         response: {
@@ -165,8 +174,6 @@ export const init = async (signClientOptions, stream) => {
         },
       });
     }
-
-
   };
 
   const rejectRequest = async (requestEvent) => {
@@ -176,39 +183,40 @@ export const init = async (signClientOptions, stream) => {
       response: {
         id,
         jsonrpc: '2.0',
-        error: getSdkError('USER_REJECTED_METHODS').message
+        error: getSdkError('USER_REJECTED_METHODS').message,
       },
     });
   };
 
   const clear = async () => {
     try {
-      const prs = self.client.session.getAll().map(({topic}) => disconnect({topic, reason: getSdkError('USER_DISCONNECTED')}))
+      const prs = self.client.session
+        .getAll()
+        .map(({ topic }) => disconnect({ topic, reason: getSdkError('USER_DISCONNECTED') }));
       await Promise.all(prs);
-    } catch(e) {
-      console.log('WC CLEAR ERROR', e)
+    } catch (e) {
+      console.log('WC CLEAR ERROR', e);
     }
   };
 
-  const extend = async params => {
+  const extend = async (params) => {
     await self.client.extend(params);
   };
 
   const transportClose = async () => {
     try {
-      await self.client.core.relayer.transportClose()
-    } catch(e) {
-      console.log('REINIT', e)
+      await self.client.core.relayer.transportClose();
+    } catch (e) {
+      console.log('REINIT', e);
     }
-  }
+  };
 
   const reinit = async () => {
-    await transportClose()
-    await initClient()
-  }
+    await transportClose();
+    await initClient();
+  };
 
-
-  await initClient()
+  await initClient();
 
   return {
     clear,
@@ -225,6 +233,6 @@ export const init = async (signClientOptions, stream) => {
     destroy,
     reinit,
     transportClose,
-    extend
+    extend,
   };
 };
