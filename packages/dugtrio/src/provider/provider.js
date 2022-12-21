@@ -32,7 +32,8 @@ import * as SignClient from '../SignClient';
 import { Dec } from '@keplr-wallet/unit';
 import {abis, createContract} from '../contracts';
 import createHttpProvider from '../contracts/http-provider';
-import { Web3Provider } from "@ethersproject/providers"// import { transfer } from '../nft';
+import { Web3Provider } from "@ethersproject/providers"
+import { transfer as transferNft } from '../nft';
 import { Interface } from '@ethersproject/abi';
 import abiDecoder from 'abi-decoder';
 
@@ -474,7 +475,11 @@ const createProvider = (configs) => {
   }
 
   const transferTicket = (ticketAddress, ticketId, toAddress) => {
-    // return transfer(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
+    return transferNft(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
+  }
+
+  const estimateTransferTicket = (ticketAddress, ticketId, toAddress) => {
+    return transferNft.estimate(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
   }
 
   
@@ -531,6 +536,7 @@ const createProvider = (configs) => {
     decodeEvmTxData,
     ticketList,
     transferTicket,
+    estimateTransferTicket
   };
 };
 export const validateMnemonic = (mnemonic) => {

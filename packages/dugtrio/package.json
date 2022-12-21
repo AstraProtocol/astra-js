@@ -42,6 +42,7 @@
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/wallet": "^5.7.0",
     "@keplr-wallet/unit": "^0.11.7",
     "@walletconnect/sign-client": "2.1.0",
     "@walletconnect/utils": "2.1.0",

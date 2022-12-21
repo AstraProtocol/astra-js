@@ -71,9 +71,20 @@ describe('Wallet', function () {
       const address = await provider.getAddress();
       expect(address).toEqual('astra12nnueg3904ukfjel4u695ma6tvrkqvqmrqstx6');
     });
-    test('get tx data from hash', async function () {
-      const data = await provider.decodeEvmTxData('0x13d70cfcc6fd261bd4715aedc5d646ba132b3923579fa07673404981f5449821');
-      expect(data.name).toEqual('swapExactETHForTokens');
+    test('send nft', async function () {
+      const est = await provider.estimateTransferTicket(
+        '0x2BdCf9f0476bD9f8C9c8B50fAD71C65A0fC4F96f',
+        '2',
+        '0xBf67350a5181A24D85b5785666EC2DACDb5C903B'
+      );
+      console.log(est.gasUsed.toString())
+      const tx = await provider.transferTicket(
+        '0x2BdCf9f0476bD9f8C9c8B50fAD71C65A0fC4F96f',
+        '2',
+        '0xBf67350a5181A24D85b5785666EC2DACDb5C903B'
+      );
+      console.log(tx)
+      expect(tx).toHaveProperty('hash');
     });
     // test('send big number', async function () {
     //   const tx = await provider.transfer(
