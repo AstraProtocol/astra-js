@@ -475,11 +475,11 @@ const createProvider = (configs) => {
   }
 
   const transferTicket = (ticketAddress, ticketId, toAddress) => {
-    return transferNft(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
+    return transferNft(ticketAddress, ticketId, toAddress, self.web3Provider, self.account, self.chainInfo)
   }
 
   const estimateTransferTicket = (ticketAddress, ticketId, toAddress) => {
-    return transferNft.estimate(ticketAddress, ticketId, toAddress, self.web3Provider, self.account)
+    return transferNft.estimate(ticketAddress, ticketId, toAddress, self.web3Provider, self.account, self.chainInfo)
   }
 
   

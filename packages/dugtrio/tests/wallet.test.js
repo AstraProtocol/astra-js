@@ -73,18 +73,18 @@ describe('Wallet', function () {
     });
     test('send nft', async function () {
       const est = await provider.estimateTransferTicket(
-        '0x2BdCf9f0476bD9f8C9c8B50fAD71C65A0fC4F96f',
-        '2',
+        "0x1F17093b1c332E9E8E45717a28091c2fe7ba475f",
+        '8',
         '0xBf67350a5181A24D85b5785666EC2DACDb5C903B'
       );
       console.log(est.gasUsed.toString())
       const tx = await provider.transferTicket(
-        '0x2BdCf9f0476bD9f8C9c8B50fAD71C65A0fC4F96f',
-        '2',
-        '0xBf67350a5181A24D85b5785666EC2DACDb5C903B'
+        '0x1F17093b1c332E9E8E45717a28091c2fe7ba475f',
+        '8',
+        'astra1hann2zj3sx3ympd40ptxdmpd4nd4eypm45zhhr'
       );
       console.log(tx)
-      expect(tx).toHaveProperty('hash');
+      expect(est).toHaveProperty('hash');
     });
     // test('send big number', async function () {
     //   const tx = await provider.transfer(
