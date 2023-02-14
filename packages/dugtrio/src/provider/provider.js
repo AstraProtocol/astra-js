@@ -116,6 +116,17 @@ const createProvider = (configs) => {
     self.signClient = await SignClient.init(options, self.stream);
   };
 
+  const updateGasPrice = async () => {
+    try {
+      const { data } = self.axiosInstance.get('/ethermint/feemarket/v1/params');
+      const gasPrice = R.pathOr(self.chainInfo.gasPrice, ['params', 'min_gas_price'], data);
+      console.log(`gasPrice: ${`${new Dec(gasPrice).toString(0)}aastra`}`);
+      self.chainInfo.gasPrice = `${new Dec(gasPrice).toString(0)}aastra`;
+    } catch(e) {
+      console.log('UPDATE GAS PRICE ERROR', e);
+    }
+  };
+
   const _createMnemonicKeyStore = async (mnemonic, password) => {
     const prefix = self.chainInfo.bech32Prefix;
     const original = await EthSecp256k1HdWallet.fromMnemonic(mnemonic, {
@@ -276,6 +287,7 @@ const createProvider = (configs) => {
     );
   };
   const simulateDelegate = async (validator, amount) => {
+    await updateGasPrice();
     const gasUsed = await staking.delegate.simulate(
       self.axiosInstance,
       self.chainInfo,
@@ -298,6 +310,7 @@ const createProvider = (configs) => {
     );
   };
   const simulateReDelegate = async (srcValidator, dstValidator, amount) => {
+    await updateGasPrice();
     const gasUsed = await staking.reDelegate.simulate(
       self.axiosInstance,
       self.chainInfo,
@@ -320,6 +333,7 @@ const createProvider = (configs) => {
     );
   };
   const simulateUnDelegate = async (validator, amount) => {
+    await updateGasPrice();
     const gasUsed = await staking.unDelegate.simulate(
       self.axiosInstance,
       self.chainInfo,
@@ -341,6 +355,7 @@ const createProvider = (configs) => {
   };
 
   const simulateWithdrawDelegatorReward = async (validator) => {
+    await updateGasPrice();
     const gasUsed = await staking.withdrawDelegatorReward.simulate(
       self.axiosInstance,
       self.chainInfo,
