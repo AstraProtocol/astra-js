@@ -119,9 +119,11 @@ const createProvider = (configs) => {
   const updateGasPrice = async () => {
     try {
       const { data } = await self.axiosInstance.get('/ethermint/feemarket/v1/params');
-      const gasPrice = R.pathOr(self.chainInfo.gasPrice, ['params', 'min_gas_price'], data);
-      console.log(`gasPrice: ${`${new Dec(gasPrice).toString(0)}aastra`}`);
-      self.chainInfo.gasPrice = `${new Dec(gasPrice).toString(0)}aastra`;
+      let gasPrice = R.pathOr(self.chainInfo.gasPrice, ['params', 'min_gas_price'], data);
+      if(new Dec(gasPrice).gt(new Dec(0))) {
+        self.chainInfo.gasPrice = `${new Dec(gasPrice).toString(0)}aastra`;
+        console.log({gasPrice})
+      }
     } catch(e) {
       console.log('UPDATE GAS PRICE ERROR', e);
     }
