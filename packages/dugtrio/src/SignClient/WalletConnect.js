@@ -86,7 +86,7 @@ export const init = async (signClientOptions, stream) => {
     await self.client.pair({ uri });
   };
 
-  const approveProposal = (proposal, address, timeout = 5000) => {
+  const approveProposal = (proposal, address, chainConfig, timeout = 5000) => {
     return new Promise(async (resolve, reject) => {
       try {
         const approvePayload = {
@@ -94,7 +94,7 @@ export const init = async (signClientOptions, stream) => {
           relayProtocol: proposal.params.relays[0].protocol,
           namespaces: {
             astra: {
-              accounts: ['astra:astra-testnet:' + address],
+              accounts: [`astra:astra-${chainConfig.key}:${address}`],
               methods: proposal.params.requiredNamespaces['astra'].methods,
               events: proposal.params.requiredNamespaces['astra'].events,
             },
