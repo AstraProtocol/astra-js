@@ -296,7 +296,7 @@ const createProvider = (configs) => {
       validator,
       amount
     );
-    storeSimulation(TxTypes.DELEGATE, gasUsed);
+    await storeSimulation(TxTypes.DELEGATE, gasUsed);
   };
   const _reDelegate = (srcValidator, dstValidator, amount) => {
     const fee = astra2aastra(feeSimulator(TxTypes.RE_DELEGATE));
@@ -320,7 +320,7 @@ const createProvider = (configs) => {
       dstValidator,
       amount
     );
-    storeSimulation(TxTypes.RE_DELEGATE, gasUsed);
+    await storeSimulation(TxTypes.RE_DELEGATE, gasUsed);
   };
   const _unDelegate = (validator, amount) => {
     const fee = astra2aastra(feeSimulator(TxTypes.UNBOND));
@@ -342,7 +342,7 @@ const createProvider = (configs) => {
       validator,
       amount
     );
-    storeSimulation(TxTypes.UNBOND, gasUsed);
+    await storeSimulation(TxTypes.UNBOND, gasUsed);
   };
   const _withdrawDelegatorReward = (validator) => {
     const fee = astra2aastra(feeSimulator(TxTypes.GET_REWARD));
@@ -363,7 +363,7 @@ const createProvider = (configs) => {
       self.account,
       validator
     );
-    storeSimulation(TxTypes.GET_REWARD, gasUsed);
+    await storeSimulation(TxTypes.GET_REWARD, gasUsed);
   };
 
   const fetchBalances = async () => {
