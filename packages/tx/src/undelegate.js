@@ -26,7 +26,7 @@ const simulateGasUnDelegate = async (axiosInstance, chainInfo, account, validato
       amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
     },
   };
-  return simulateGas(axiosInstance, account, { msgs: [msg] })
+  return simulateGas(axiosInstance, account, { msgs: [msg] }, chainInfo)
 };
 
 

@@ -2,6 +2,7 @@ import { toUpper, mergeRight, is, path, propOr, prop, flatten, invoker, always, 
 import { Buffer } from 'buffer';
 import { fetchAccount } from './account';
 import { signAmino, makeSimulateBody } from './signAmino';
+import { calculateFee } from './utils';
 
 
 const R = { toUpper, mergeRight, is, invoker, prop, path, flatten, propOr, always, tap };
@@ -49,8 +50,6 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
     chainId: chain.chainId,
   };
 
-  const gasUsed = await simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence))
-
   const stdFee = {
     amount: [{
       amount: tx.fee,
@@ -58,6 +57,9 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
     }],
     gas: `${Math.floor((gasUsed || chain.gasLimit) * ( tx.gasAdjustment || 1.3 ))}`
   }
+
+  const gasUsed = await simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence, stdFee.amount, chain.gasLimit))
+
   const txRawBytes = signAmino(
     account,
     tx.msgs,
@@ -68,10 +70,11 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
   return sendTx(axiosInstance, txRawBytes);
 };
 
-export const simulateGas = async (axiosInstance, account, tx) => {
+export const simulateGas = async (axiosInstance, account, tx, chain) => {
   const { address } = account;
   const _account = await fetchAccount(axiosInstance, address);
-  return simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence))
+  const stdFee = calculateFee({ gasPrice: chain.gasPrice, gasLimit: chain.gasLimit });
+  return simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence, stdFee.amount, chain.gasLimit))
 };
 
 const sleep = (time) =>

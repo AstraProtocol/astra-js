@@ -17,7 +17,7 @@ const delegate = async (axiosInstance, chainInfo, account, validator, amount, fe
     msgs: [msg],
     fee,
   }
-  console.log(tx);
+  
   return makeTx(axiosInstance, account, chainInfo, tx);
 };
 
@@ -31,7 +31,7 @@ const simulateGasDelegate = async (axiosInstance, chainInfo, account, validator,
       amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
     },
   };
-  return simulateGas(axiosInstance, account, { msgs: [msg] })
+  return simulateGas(axiosInstance, account, { msgs: [msg] }, chainInfo)
 };
 
 delegate.simulate = simulateGasDelegate;

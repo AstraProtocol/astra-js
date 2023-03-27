@@ -89,6 +89,8 @@ export const makeSimulateBody  = (
   messages,
   memo = '',
   sequence ,
+  fee,
+  gasLimit
 ) => {
   const signedTxBody = {
     messages: messages.map(i =>  AMINO_TYPES.fromAmino(i)),
@@ -101,7 +103,7 @@ export const makeSimulateBody  = (
   };
   const signedTxBodyBytes = REGISTRY.encode(signedTxBodyEncodeObject);
   const signedSequence = Int53.fromString(sequence).toNumber();
-  const signedAuthInfoBytes = makeAuthInfoBytes([{ sequence: signedSequence }], [], 0, SIGN_MODE);
+  const signedAuthInfoBytes = makeAuthInfoBytes([{ sequence: signedSequence }], fee, gasLimit, SIGN_MODE);
   const txRaw = TxRaw.fromPartial({
     bodyBytes: signedTxBodyBytes,
     authInfoBytes: signedAuthInfoBytes,

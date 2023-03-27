@@ -122,7 +122,6 @@ const createProvider = (configs) => {
       let gasPrice = R.pathOr(self.chainInfo.gasPrice, ['params', 'min_gas_price'], data);
       if(new Dec(gasPrice).gt(new Dec(0))) {
         self.chainInfo.gasPrice = `${new Dec(gasPrice).toString(0)}aastra`;
-        console.log({gasPrice})
       }
     } catch(e) {
       console.log('UPDATE GAS PRICE ERROR', e);

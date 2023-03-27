@@ -48,7 +48,7 @@ const simulateGasReDelegate = async (
       amount: { denom: chainInfo.denom, amount: actualAmount(amount, chainInfo.decimals) },
     },
   };
-  return simulateGas(axiosInstance, account, { msgs: [msg] })
+  return simulateGas(axiosInstance, account, { msgs: [msg] }, chainInfo)
 };
 
 reDelegate.simulate = simulateGasReDelegate;

@@ -19,7 +19,7 @@ const withdrawDelegatorReward = async (axiosInstance, chainInfo, account, valida
   return makeTx(axiosInstance, account, chainInfo, tx);
 };
 
-const simulateGasWithdrawDelegatorReward = async (axiosInstance, _, account, validator) => {
+const simulateGasWithdrawDelegatorReward = async (axiosInstance, chainInfo, account, validator) => {
   const { address } = account;
 
   const _validators = Array.isArray(validator) ? validator : [validator];
@@ -30,7 +30,8 @@ const simulateGasWithdrawDelegatorReward = async (axiosInstance, _, account, val
       delegator_address: address,
     },
   }));
-  return simulateGas(axiosInstance, account, { msgs })
+  return simulateGas(axiosInstance, account, { msgs }, chainInfo)
+
 };
 
 
