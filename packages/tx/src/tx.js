@@ -55,10 +55,10 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
       tx.msgs, 
       tx.memo, 
       _account.sequence, 
-      {
+      [{
         amount: tx.fee,
         denom: chain.denom
-      }, 
+      }], 
       chain.gasLimit
     )
   );

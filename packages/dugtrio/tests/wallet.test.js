@@ -95,26 +95,30 @@ describe('Wallet', function () {
     await provider.unlockNewKeystore();
   });
   describe('action', function () {
-    test('address', async function () {
-      const res = await provider.simulateDelegate('astravaloper1u7gf4z49v53yrxy6ggrzhxfqj46c3ap4tzku46', 111);
-      console.log({res});
-      expect(res).toHaveProperty('hash');
+    test('withdraw', async function () {
+      await provider.simulateWithdrawDelegatorReward(
+        ["astravaloper1u7gf4z49v53yrxy6ggrzhxfqj46c3ap4tzku46"]
+      );
+      const res = await provider.withdrawDelegatorReward(
+        ["astravaloper1u7gf4z49v53yrxy6ggrzhxfqj46c3ap4tzku46"]
+      );
+      expect(res).toHaveProperty('txhash');
     });
-    // test('send nft', async function () {
-    //   const est = await provider.estimateTransferTicket(
-    //     "0x1F17093b1c332E9E8E45717a28091c2fe7ba475f",
-    //     '8',
-    //     '0xBf67350a5181A24D85b5785666EC2DACDb5C903B'
-    //   );
-    //   console.log(est.gasUsed.toString())
-    //   const tx = await provider.transferTicket(
-    //     '0x1F17093b1c332E9E8E45717a28091c2fe7ba475f',
-    //     '8',
-    //     'astra1hann2zj3sx3ympd40ptxdmpd4nd4eypm45zhhr'
-    //   );
-    //   console.log(tx)
-    //   expect(est).toHaveProperty('hash');
-    // });
+    test('send nft', async function () {
+      const est = await provider.estimateTransferTicket(
+        "0x1F17093b1c332E9E8E45717a28091c2fe7ba475f",
+        '8',
+        '0xBf67350a5181A24D85b5785666EC2DACDb5C903B'
+      );
+      console.log(est.gasUsed.toString())
+      const tx = await provider.transferTicket(
+        '0x1F17093b1c332E9E8E45717a28091c2fe7ba475f',
+        '8',
+        'astra1hann2zj3sx3ympd40ptxdmpd4nd4eypm45zhhr'
+      );
+      console.log(tx)
+      expect(est).toHaveProperty('hash');
+    });
     // test('send big number', async function () {
     //   const tx = await provider.transfer(
     //     'astra19u6ft0g0zldkdewd8t76s2tftzpezly7gx7x7h',
