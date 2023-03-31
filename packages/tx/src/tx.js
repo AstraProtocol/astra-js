@@ -50,6 +50,19 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
     chainId: chain.chainId,
   };
 
+  const gasUsed = await simulate(axiosInstance, 
+    makeSimulateBody(
+      tx.msgs, 
+      tx.memo, 
+      _account.sequence, 
+      {
+        amount: tx.fee,
+        denom: chain.denom
+      }, 
+      chain.gasLimit
+    )
+  );
+
   const stdFee = {
     amount: [{
       amount: tx.fee,
@@ -58,7 +71,6 @@ export const makeTx = async (axiosInstance, account, chain, tx) => {
     gas: `${Math.floor((gasUsed || chain.gasLimit) * ( tx.gasAdjustment || 1.3 ))}`
   }
 
-  const gasUsed = await simulate(axiosInstance, makeSimulateBody(tx.msgs, tx.memo, _account.sequence, stdFee.amount, chain.gasLimit))
 
   const txRawBytes = signAmino(
     account,
