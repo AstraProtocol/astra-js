@@ -50,6 +50,16 @@ export class MiniRpcProvider {
       const bufString = `0x${buffer.toString('hex')}`
       return this.sendRawTransaction(bufString)
     }
+    if (_method === 'personal_sign') {
+      const message = _params;
+      const signature = await this.myAstra.signMessage(message)
+      return signature;
+    }
+    if (_method === 'eth_signTypedData_v4') {
+      const [_, messages] = _params;
+      const signature = await this.myAstra.signTypedData(messages)
+      return signature;
+    }
     return this.http(_method, _params)
   }
 
