@@ -1,5 +1,5 @@
 import { AbstractConnector } from '@web3-react/abstract-connector'
-import { astra, cosmosChainId,  MiniRpcProvider } from './utils'
+import { astra, cosmosChainId,  generateUUID,  MiniRpcProvider } from './utils'
 
 export class NoAstraProviderError extends Error {
   constructor() {
@@ -19,25 +19,31 @@ export class UserRejectedRequestError extends Error {
 
 export class AstraConnector extends AbstractConnector {
 
-  static async create({ chainId, url }) {
+  static async create({ chainId, url, metadata }) {
     const connector = new AstraConnector({
       url,
       chainId,
+      metadata
     });
     await connector.setup();
     return connector;
   }
 
-  constructor({ url, chainId }) {
+  constructor({ url, chainId, metadata }) {
     super({ supportedChainIds: [chainId] });
 
     this.chainId = chainId;
+    this.metadata = metadata;
 
     const mappers = {
       eth_chainId: chainId,
     };
     this.setupSuccess = false;
     this.myAstra = astra(window);
+    this.myAstra.setMetadata({
+      ...metadata,
+      uuid: generateUUID(),
+    });
     this.provider = new MiniRpcProvider(chainId, url, mappers, this.myAstra);
   }
 
