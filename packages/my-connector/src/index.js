@@ -19,7 +19,7 @@ export class AstraWalletConnector  {
         return connector;
       }
       if(context.isAstra) {
-        const connector = new AstraConnector({ url, chainId });
+        const connector = new AstraConnector({ url, chainId, metadata });
         await connector.setup();
         return connector;
       }
