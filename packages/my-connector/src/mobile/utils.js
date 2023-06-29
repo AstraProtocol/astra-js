@@ -46,9 +46,7 @@ export class MiniRpcProvider {
         data,
         'transaction',
       )
-      const buffer = Buffer.from(signedData)
-      const bufString = `0x${buffer.toString('hex')}`
-      return this.sendRawTransaction(bufString)
+      return this.sendRawTransaction(signedData)
     }
     if (_method === 'personal_sign') {
       const message = _params;

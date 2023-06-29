@@ -100,12 +100,14 @@ export class WalletConnectConnector extends AbstractConnector {
 
   async setup({
     relayUrl = RELAY,
+    projectId = '',
     metadata = {},
     logger
   }) {
     const client = await SignClient.init({
-      logger,
+      projectId,
       relayUrl,
+      logger,
       metadata,
     })
 
