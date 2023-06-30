@@ -16,6 +16,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Lerna setup
         run: npm install -g lerna@4 && npm install
+      - name: Package install dependencies
+        run: cd packages/walletconnect-connector && npm install
       - name: Project install
         run: lerna bootstrap
       - name: Dependencies build
